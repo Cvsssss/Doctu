@@ -1,0 +1,14 @@
+/* src/styles/style.css */
+body {
+    /* El archivo Background_Startpage.png debe estar en src/assets/ */
+    background-image: url('../assets/Background_Startpage.png');
+    background-repeat: repeat; /* Cámbialo a repeat para que se vea como en la imagen */
+    background-size: auto;    /* 'cover' estira la imagen; 'auto' mantiene el patrón de lotos */
+    background-position: center;
+    background-attachment: fixed;
+    color: white; 
+}
+
+.navbar {
+    background-color: #1a1a2e !important; /* El color oscuro que se ve en el diseño */
+}
