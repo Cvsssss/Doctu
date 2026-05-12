@@ -1,51 +1,14 @@
-/* Contenedor principal de la hoja cuadriculada */
-.notebook-page {
-  background-color: #fcfcfc;
-  background-image: 
-    linear-gradient(#e0e0e0 1px, transparent 1px),
-    linear-gradient(90deg, #e0e0e0 1px, transparent 1px);
-  background-size: 20px 20px;
-  
-  min-height: 100vh;
-  padding: 40px;
-  margin: 0;
-  
-  font-family: 'Kalam', cursive;
-  color: #2c2c2c;
+/* src/styles/style.css */
+body {
+    /* El archivo Background_Startpage.png debe estar en src/assets/ */
+    background-image: url('../assets/Background_Startpage.png');
+    background-repeat: repeat; /* Cámbialo a repeat para que se vea como en la imagen */
+    background-size: auto;    /* 'cover' estira la imagen; 'auto' mantiene el patrón de lotos */
+    background-position: center;
+    background-attachment: fixed;
+    color: white; 
 }
 
-/* Títulos principales */
-.title-dotted {
-  font-size: 3rem;
-  font-weight: 700;
-  border-bottom: 4px dotted #d93838; 
-  display: inline-block;
-  margin-bottom: 1rem;
-  margin-top: 0;
-  padding-bottom: 5px;
-}
-
-/* Textos normales y listas */
-.note-text {
-  font-size: 1.5rem;
-  line-height: 1.6;
-  margin-bottom: 2rem;
-}
-
-ul.note-text {
-  list-style-type: none;
-  padding-left: 20px;
-}
-
-ul.note-text ul {
-  list-style-type: none;
-  padding-left: 40px;
-}
-
-/* Subrayado rojo */
-.highlight-dotted {
-  text-decoration: underline;
-  text-decoration-style: dotted;
-  text-decoration-color: #d93838;
-  text-decoration-thickness: 2px;
+.navbar {
+    background-color: #1a1a2e !important; /* El color oscuro que se ve en el diseño */
 }
