@@ -1,8 +1,6 @@
 import React from 'react';
 import logo from '../assets/Logo.png';
 
-<img src={logo} alt="Logo de Doctu" height="90" />
-
 const Navbar = () => {
   return (
     <nav className="navbar navbar-expand-lg navbar-dark">

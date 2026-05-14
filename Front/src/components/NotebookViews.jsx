@@ -2,8 +2,6 @@ import React from 'react';
 import '../styles/style.css'; 
 import logo from '../assets/Logo.png';
 
-<img src={logo} alt="Logo de Doctu" height="90" />
-
 const NotebookViews = () => {
   return (
     <div className="notebook-page">
