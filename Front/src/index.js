@@ -1,8 +1,12 @@
 import React from 'react';
-import ReactDOM from 'react-dom/client';
+import { createRoot } from 'react-dom/client';
 import App from './App';
+import './styles/style.css'; // Asegura que los estilos carguen desde el principio
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
+// Aquí React busca el ancla que pusimos en el index.html
+const container = document.getElementById('root');
+const root = createRoot(container);
+
 root.render(
   <React.StrictMode>
     <App />

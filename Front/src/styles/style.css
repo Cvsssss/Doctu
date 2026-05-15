@@ -1,14 +1,142 @@
-/* src/styles/style.css */
-body {
-    /* El archivo Background_Startpage.png debe estar en src/assets/ */
-    background-image: url('../assets/Background_Startpage.png');
-    background-repeat: repeat; /* Cámbialo a repeat para que se vea como en la imagen */
-    background-size: auto;    /* 'cover' estira la imagen; 'auto' mantiene el patrón de lotos */
-    background-position: center;
-    background-attachment: fixed;
-    color: white; 
+/* --- VARIABLES DE COLOR (Tonos Morados Pasteles) --- */
+:root {
+  --bg-color: #FAFAFD; /* Un blanco con un toque imperceptible de lila */
+  --text-main: #2D2C38; /* Gris oscuro casi morado para leer bien */
+  --text-light: #6B6A7B;
+  --purple-pastel: #E1D5F5; /* Morado pastel muy suave */
+  --purple-accent: #8E7CC3; /* Morado medio para resaltar */
+  --white: #FFFFFF;
 }
 
+/* --- REGLAS GENERALES MINIMALISTAS --- */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* --- BARRA DE NAVEGACIÓN LIMPIA --- */
 .navbar {
-    background-color: #1a1a2e !important; /* El color oscuro que se ve en el diseño */
+  background-color: var(--white);
+  border-bottom: 1px solid var(--purple-pastel);
+  padding: 1rem 4rem; /* Mucho margen horizontal para monitores */
+  display: flex;
+  justify-content: center;
+}
+
+.navbar-container {
+  width: 100%;
+  max-width: 1200px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.navbar-logo {
+  height: 45px; /* Tamaño discreto */
+  object-fit: contain;
+}
+
+.navbar-menu {
+  list-style: none;
+  display: flex;
+  gap: 2rem;
+  color: var(--text-light);
+  font-weight: 500;
+}
+
+/* --- ÁREA PRINCIPAL (HERO DESKTOP) --- */
+.hero-desktop {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 80px);
+  padding: 0 4rem;
+}
+
+.hero-text-area {
+  max-width: 800px;
+  text-align: center; /* Centrado minimalista para PC */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* --- TIPOGRAFÍA Y DECORACIONES --- */
+.badge-pastel {
+  background-color: var(--purple-pastel);
+  color: var(--purple-accent);
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 1.5rem;
+}
+
+.hero-title {
+  font-size: 4rem; /* Texto muy grande para escritorio */
+  font-weight: 800;
+  line-height: 1.1;
+  margin-bottom: 1.5rem;
+  letter-spacing: -1px;
+}
+
+.text-purple {
+  color: var(--purple-accent);
+}
+
+.hero-subtitle {
+  font-size: 1.25rem;
+  color: var(--text-light);
+  max-width: 600px;
+  margin-bottom: 3rem;
+  line-height: 1.6;
+}
+
+/* --- BOTONES PASTEL --- */
+.hero-actions {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.btn-pastel-primary {
+  background-color: var(--purple-accent);
+  color: var(--white);
+  border: none;
+  padding: 14px 32px;
+  font-size: 1.1rem;
+  font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  box-shadow: 0 4px 15px rgba(142, 124, 195, 0.3);
+}
+
+.btn-pastel-primary:hover {
+  opacity: 0.9;
+}
+
+.btn-pastel-secondary {
+  background-color: var(--white);
+  color: var(--purple-accent);
+  border: 1px solid var(--purple-pastel);
+  padding: 14px 32px;
+  font-size: 1.1rem;
+  font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-pastel-secondary:hover {
+  background-color: var(--purple-pastel);
 }

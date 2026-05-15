@@ -1,26 +1,20 @@
 import React from 'react';
-import logo from '../assets/Logo.png';
+// IMPORTANTE: Importar la imagen directamente desde la carpeta assets
+import logoDoctu from '../assets/Logo.png'; 
 
-<img src={logo} alt="Logo de Doctu" height="90" />
-
-const Navbar = () => {
+function Navbar() {
   return (
-    <nav className="navbar navbar-expand-lg navbar-dark">
-      <div className="container-fluid">
-        <a className="navbar-brand" href="#!">
-          <img src={logo} alt="Logo de Doctu" height="90" />
-        </a>
-        <div className="collapse navbar-collapse" id="navbarNavDropdown">
-          <ul className="navbar-nav ms-auto">
-            <li className="nav-item"><a className="nav-link active" href="#!">Inicio</a></li>
-            <li className="nav-item"><a className="nav-link" href="#!">Productos</a></li>
-            <li className="nav-item"><a className="nav-link" href="#!">FAQ</a></li>
-            <li className="nav-item"><a className="nav-link" href="#!">Contáctanos</a></li>
-          </ul>
-        </div>
+    <nav className="navbar">
+      <div className="navbar-container">
+        {/* Usamos la variable logoDoctu que acabamos de importar */}
+        <img src={logoDoctu} alt="Logo de Doctu" className="navbar-logo" />
+        <ul className="navbar-menu">
+          <li>Inicio</li>
+          <li>Acerca de</li>
+        </ul>
       </div>
     </nav>
   );
-};
+}
 
 export default Navbar;
