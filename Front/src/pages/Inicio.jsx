@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 function Inicio() {
   const navigate = useNavigate();
 
-  // Funciones abstractas obligatorias según el manual 
+  // Funciones abstractas obligatorias 
   const scrollToSection = (sectionId) => {
     console.log("Navegando a sección:", sectionId);
     // Lógica futura para scrolling 

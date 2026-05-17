@@ -12,25 +12,29 @@ import LlenadoExpediente from './pages/LlenadoExpediente';
 import CalendarioBuzon from './pages/CalendarioBuzon';
 import BusquedaPaciente from './pages/BusquedaPaciente';
 import PortalPaciente from './pages/PortalPaciente';
+import PasarelaPagos from './pages/PasarelaPagos';
 
 function App() {
   return (
-    // Router envuelve toda la aplicación para habilitar la navegación
     <Router>
       <div className="app-container">
-        {/* El Navbar se queda afuera de las rutas para que siempre esté visible */}
         <Navbar />
         
-        {/* Routes es como el semáforo que decide qué componente mostrar */}
         <Routes>
+          {/* Rutas Públicas */}
           <Route path="/" element={<Inicio />} />
           <Route path="/login" element={<Login />} />
           <Route path="/registro" element={<RegistroPaciente />} />
+
+          {/* Rutas del Flujo Médico */}
           <Route path="/dashboard-medico" element={<DashboardMedico />} />
+          <Route path="/buscar-paciente" element={<BusquedaPaciente />} />
           <Route path="/llenado-expediente" element={<LlenadoExpediente />} />
-          <Route path="/calendario-buzon" element={<CalendarioBuzon />} />
-          <Route path="/busqueda-paciente" element={<BusquedaPaciente />} />
+          <Route path="/calendario" element={<CalendarioBuzon />} />
+
+          {/* Rutas del Flujo Paciente */}
           <Route path="/portal-paciente" element={<PortalPaciente />} />
+          <Route path="/pasarela-pago" element={<PasarelaPagos />} />
         </Routes>
       </div>
     </Router>

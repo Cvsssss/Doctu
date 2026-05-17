@@ -1,10 +1,12 @@
 import React, { useState, useRef } from 'react';
 import '../styles/style.css';
+import { useNavigate } from 'react-router-dom';
 
 function BusquedaPaciente() {
   const [query, setQuery] = useState('');
   const [resultados, setResultados] = useState([]);
   const [buscando, setBuscando] = useState(false);
+  const navigate = useNavigate();
   
   // Referencia para mantener vivo el temporizador entre renderizados
   const timerRef = useRef(null);
@@ -43,8 +45,9 @@ function BusquedaPaciente() {
 
   // 3. Validar permisos antes de abrir (Crucial para el aislamiento PII)
   const validatePatientAccess = (doctorId, patientId) => {
-    console.log(`Validando si el Doctor ${doctorId} tiene pacientes vinculados con ID ${patientId}...`);
-    alert(`Acceso concedido para el expediente ${patientId}. Redirigiendo...`);
+    console.log(`Validando accesos...`);
+    alert(`Acceso concedido. Redirigiendo...`);
+    navigate('/llenado-expediente'); // Redirige al visor de expediente
   };
 
   // Manejador del Input de texto
