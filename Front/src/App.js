@@ -7,6 +7,11 @@ import Navbar from './components/Navbar';
 import Inicio from './pages/Inicio';
 import Login from './pages/Login';
 import RegistroPaciente from './pages/RegistroPaciente';
+import DashboardMedico from './pages/DashboardMedico';
+import LlenadoExpediente from './pages/LlenadoExpediente';
+import CalendarioBuzon from './pages/CalendarioBuzon';
+import BusquedaPaciente from './pages/BusquedaPaciente';
+import PortalPaciente from './pages/PortalPaciente';
 
 function App() {
   return (
@@ -21,6 +26,11 @@ function App() {
           <Route path="/" element={<Inicio />} />
           <Route path="/login" element={<Login />} />
           <Route path="/registro" element={<RegistroPaciente />} />
+          <Route path="/dashboard-medico" element={<DashboardMedico />} />
+          <Route path="/llenado-expediente" element={<LlenadoExpediente />} />
+          <Route path="/calendario-buzon" element={<CalendarioBuzon />} />
+          <Route path="/busqueda-paciente" element={<BusquedaPaciente />} />
+          <Route path="/portal-paciente" element={<PortalPaciente />} />
         </Routes>
       </div>
     </Router>
