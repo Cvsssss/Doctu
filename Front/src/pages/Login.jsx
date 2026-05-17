@@ -1,31 +1,46 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom'; // Importamos la herramienta de enrutamiento
 import '../styles/style.css';
 
 function Login() {
   const [esMedico, setEsMedico] = useState(false);
+  const navigate = useNavigate(); // Inicializamos la navegación interactiva
 
-  // Funciones abstractas requeridas para manejar JWT y roles [cite: 1051, 1052, 1053, 1054]
+  // --- Funciones abstractas requeridas por la arquitectura técnica ---
   const authenticateUser = async (credentials) => {
-    console.log("Autenticando...", credentials);
+    // Aquí se conectará la lógica del Backend/Middleware para validar las credenciales
+    console.log("Autenticando usuario en la base de datos...", credentials);
   };
 
-  const validateSessionStatus = () => {};
+  const validateSessionStatus = () => {
+    console.log("Verificando si la sesión actual sigue activa...");
+  };
   
   const routeUserByRole = (role) => {
-    console.log("Enrutando a dashboard de:", role);
+    console.log("Enrutando dinámicamente a la interfaz de:", role);
+    // Enlazamos las funciones abstractas con las rutas reales del enrutador
+    if (role === "Médico") {
+      navigate('/dashboard-medico');
+    } else {
+      navigate('/portal-paciente');
+    }
   };
 
   const handleAuthError = (error) => {
-    console.error("Error de Auth:", error);
+    console.error("Error detectado en la capa de autenticación:", error);
   };
 
-  const manejarSubmit = (e) => {
+  // Manejador del envío del formulario controlado
+  const manejarSubmit = async (e) => {
     e.preventDefault();
     const role = esMedico ? "Médico" : "Paciente";
-    authenticateUser({ role: role });
+    
+    // Ejecutamos el flujo completo respetando la arquitectura estructurada
+    await authenticateUser({ role: role });
     routeUserByRole(role);
   };
-return (
+
+  return (
     <div className="container mt-5 d-flex justify-content-center">
       <div className="card shadow-sm border-0 p-4" style={{maxWidth: '400px', width: '100%', backgroundColor: 'var(--white)'}}>
         
@@ -75,6 +90,6 @@ return (
       </div>
     </div>
   );
-  }
+}
 
 export default Login;
