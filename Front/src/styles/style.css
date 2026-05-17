@@ -22,13 +22,13 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* --- BARRA DE NAVEGACIÓN LIMPIA --- */
+/* --- BARRA DE NAVEGACIÓN --- */
 .navbar {
-  background-color: var(--white);
   border-bottom: 1px solid var(--purple-pastel);
-  padding: 1rem 4rem; /* Mucho margen horizontal para monitores */
+  padding: 1rem 4rem; 
   display: flex;
   justify-content: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05); 
 }
 
 .navbar-container {
@@ -40,18 +40,45 @@ body {
 }
 
 .navbar-logo {
-  height: 45px; /* Tamaño discreto */
-  object-fit: contain;
+  height: 45px; 
+  width: 180px;
+  object-fit: cover;
+  border-radius: 50%;
 }
 
 .navbar-menu {
   list-style: none;
   display: flex;
   gap: 2rem;
-  color: var(--text-light);
-  font-weight: 500;
+  align-items: center; 
 }
 
+/* Estilo para los enlaces de texto (Regístrate y Ayuda) */
+.navbar-menu a {
+  text-decoration: none;
+  color: var(--text-main); 
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: color 0.2s ease-in-out;
+}
+
+.navbar-menu a:hover {
+  color: var(--purple-accent);
+}
+
+/* Estilo tipo botón destacado para Inicia Sesión */
+.btn-login-nav {
+  background-color: var(--purple-accent);
+  color: var(--white) !important;
+  padding: 8px 20px;
+  border-radius: 20px;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.btn-login-nav:hover {
+  opacity: 0.9;
+  color: var(--white) !important;
+}
 /* --- ÁREA PRINCIPAL (HERO DESKTOP) --- */
 .hero-desktop {
   display: flex;
@@ -63,7 +90,7 @@ body {
 
 .hero-text-area {
   max-width: 800px;
-  text-align: center; /* Centrado minimalista para PC */
+  text-align: center; 
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -83,7 +110,7 @@ body {
 }
 
 .hero-title {
-  font-size: 4rem; /* Texto muy grande para escritorio */
+  font-size: 4rem; 
   font-weight: 800;
   line-height: 1.1;
   margin-bottom: 1.5rem;

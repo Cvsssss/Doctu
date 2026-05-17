@@ -1,6 +1,6 @@
 import React from 'react';
 import '../styles/style.css'; 
-import logo from '../assets/Logo.png';
+import logo from '../assets/Icon.png';
 
 <img src={logo} alt="Logo de Doctu" height="90" />
 
