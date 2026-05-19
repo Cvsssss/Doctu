@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/style.css';
+import ModalExportacion from '../components/ModalExportacion';
 
 function VisorExpediente() {
   const [timelineData, setTimelineData] = useState([]);
@@ -23,10 +24,15 @@ function VisorExpediente() {
   };
 
   // 3. Exportación XML/PDF para cumplir con la NOM-024 [cite: 1145, 1148]
+  const [modalAbierto, setModalAbierto] = useState(false);
+  const [registroAExportar, setRegistroAExportar] = useState(null);
+
+  // Modifica tu función abstracta de descarga
   const downloadRecordPDF = async (recordId) => {
-    console.log(`Generando XML/PDF para el registro ${recordId}`);
-    alert("Descargando formato clínico validado por la NOM-024...");
+    setRegistroAExportar(recordId);
+    setModalAbierto(true);
   };
+  
 
   // 4. PATRÓN FACTORY: Crea componentes React distintos dependiendo del tipo de registro médico 
   const renderRecordCard = (record) => {
@@ -72,10 +78,17 @@ function VisorExpediente() {
     fetchCompleteTimeline(101);
   }, []);
 
+
   return (
     <div className="visor-timeline pl-3" style={{borderLeft: '2px dashed var(--purple-pastel)', marginLeft: '1rem', paddingLeft: '1.5rem'}}>
-      {/* Se usa map() para iterar los arreglos de datos  */}
       {timelineData.map(record => renderRecordCard(record))}
+      
+      {/* Nuestro nuevo Modal */}
+      <ModalExportacion 
+        isOpen={modalAbierto} 
+        onClose={() => setModalAbierto(false)} 
+        recordId={registroAExportar} 
+      />
     </div>
   );
 }
