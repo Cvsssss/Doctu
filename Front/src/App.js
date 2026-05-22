@@ -6,7 +6,7 @@ import './styles/style.css';
 import Navbar from './components/Navbar';
 import Inicio from './pages/Inicio';
 import Login from './pages/Login';
-import RegistroPaciente from './pages/RegistroPaciente';
+import RegistroPaciente from './pages/RegistroUsuario';
 import DashboardMedico from './pages/DashboardMedico';
 import LlenadoExpediente from './pages/LlenadoExpediente';
 import CalendarioBuzon from './pages/CalendarioBuzon';
