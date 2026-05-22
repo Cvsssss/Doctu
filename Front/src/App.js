@@ -7,7 +7,7 @@ import Navbar from './components/Navbar';
 // ── Páginas Públicas ──
 import Inicio          from './pages/Inicio';
 import Login           from './pages/Login';
-import RegistroPaciente from './pages/RegistroPaciente';
+import RegistroPaciente from './pages/RegistroUsuario';
 
 // ── Flujo Médico ──
 import DashboardMedico    from './pages/DashboardMedico';

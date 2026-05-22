@@ -1,11 +1,26 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
+// ── ICONOS PROFESIONALES (SVGs Minimalistas) ──
+const getIcon = (id) => {
+  switch(id) {
+    case 'odontologia': // Diente estilizado
+      return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 2h8a4 4 0 0 1 4 4v3a4 4 0 0 1-3 3.87V19a3 3 0 0 1-6 0v-6.13A4 4 0 0 1 4 9V6a4 4 0 0 1 4-4z"/><path d="M12 12v7"/></svg>;
+    case 'psicologia': // Cerebro
+      return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/></svg>;
+    case 'medicina': // Estetoscopio
+      return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"/><path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4"/><circle cx="20" cy="10" r="2"/></svg>;
+    case 'veterinaria': // Huella (PawPrint)
+      return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="4" r="2"/><circle cx="18" cy="8" r="2"/><circle cx="20" cy="16" r="2"/><path d="M9 10a5 5 0 0 1 5 5v3.5a3.5 3.5 0 0 1-6.84 1.045Q6.52 17.48 4.46 16.84A3.5 3.5 0 0 1 5.5 10Z"/></svg>;
+    default: return null;
+  }
+};
+
 const SERVICIOS = [
-  { icon:'🦷', titulo:'Odontología', desc:'Odontograma digital, periodontogramas y seguimiento por fases. Control total del tratamiento dental.' },
-  { icon:'🧠', titulo:'Psicología',  desc:'Historial de sesiones, evaluaciones psicométricas, plan terapéutico y notas de evolución.' },
-  { icon:'🩺', titulo:'Medicina General', desc:'Historia clínica integral con signos vitales, AHF, diagnóstico CIE-10 y receta digital.' },
-  { icon:'🐾', titulo:'Veterinaria', desc:'Gestión de pacientes animales con historial, vacunas y seguimiento de tratamientos.' },
+  { id: 'odontologia', titulo:'Odontología', desc:'Odontograma digital, periodontogramas y seguimiento por fases. Control total del tratamiento dental.' },
+  { id: 'psicologia', titulo:'Psicología',  desc:'Historial de sesiones, evaluaciones psicométricas, plan terapéutico y notas de evolución.' },
+  { id: 'medicina', titulo:'Medicina General', desc:'Historia clínica integral con signos vitales, AHF, diagnóstico CIE-10 y receta digital.' },
+  { id: 'veterinaria', titulo:'Veterinaria', desc:'Gestión de pacientes animales con historial, vacunas y seguimiento de tratamientos.' },
 ];
 
 const PASOS = [
@@ -16,6 +31,12 @@ const PASOS = [
 ];
 
 export default function Inicio() {
+  // Estado para la burbuja de la caja de servicios
+  const [hoveredDesc, setHoveredDesc] = useState('');
+  
+  // Estados para la burbuja flotante que sigue al cursor (Seguridad)
+  const [activeSecurityDesc, setActiveSecurityDesc] = useState('');
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
   /* Animaciones de scroll */
   useEffect(() => {
@@ -28,12 +49,18 @@ export default function Inicio() {
     return () => obs.disconnect();
   }, []);
 
-  /* Funciones abstractas de la arquitectura */
   const scrollToSection = (id) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
   const navigateToLogin = () => { window.location.href = '/login'; };
+  
+  const handleMouseMove = (e) => {
+    setMousePos({ x: e.clientX, y: e.clientY });
+  };
+
   const renderServicesList = () => SERVICIOS.map(s => (
     <div key={s.titulo} className="feature-card reveal-on-scroll">
-      <div className="feature-card-icon">{s.icon}</div>
+      <div className="feature-card-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {getIcon(s.id)}
+      </div>
       <h4>{s.titulo}</h4>
       <p>{s.desc}</p>
     </div>
@@ -70,14 +97,26 @@ export default function Inicio() {
               </Link>
             </div>
 
-            {/* Barra de servicios */}
-            <div className="hero-services-bar" style={{ marginTop:'48px' }}>
+            {/* ── GRID 2x2 DE SERVICIOS (CON FONDOS ANIMADOS) ── */}
+            <div className="hero-services-grid" style={{ marginTop:'48px' }}>
               {SERVICIOS.map(s => (
-                <div key={s.titulo} className="service-pill">
-                  <span className="service-pill-icon">{s.icon}</span>
-                  <span>{s.titulo}</span>
+                <div 
+                  key={s.titulo} 
+                  className={`service-block block-${s.id}`}
+                  onMouseEnter={() => setHoveredDesc(s.desc)}
+                  onMouseLeave={() => setHoveredDesc('')}
+                >
+                  <span className="service-block-icon" style={{ display: 'flex', alignItems: 'center' }}>
+                    {getIcon(s.id)}
+                  </span>
+                  <span className="service-block-text">{s.titulo}</span>
                 </div>
               ))}
+            </div>
+            
+            {/* Descripción dinámica de la especialidad */}
+            <div style={{ minHeight: '40px', marginTop: '10px', color: '#fff', textAlign: 'center', opacity: hoveredDesc ? 1 : 0, transition: 'opacity 0.3s' }}>
+                <p style={{ fontSize: '0.9rem', maxWidth: '440px', margin: '0 auto' }}>{hoveredDesc}</p>
             </div>
           </div>
         </div>
@@ -105,15 +144,12 @@ export default function Inicio() {
         </div>
       </section>
 
-      {/* ── SERVICIOS ── */}
+      {/* ── SERVICIOS DETALLADOS ── */}
       <section className="section-public" id="servicios">
         <div className="container">
           <div className="section-title-center reveal-on-scroll">
             <p className="section-eyebrow">Especialidades</p>
             <h2>Para cada profesional de la salud</h2>
-            <p style={{ color:'var(--text-light)', fontSize:'1.02rem' }}>
-              Un solo sistema, adaptado a la forma en que cada especialidad trabaja.
-            </p>
           </div>
           <div className="row g-4">
             {renderServicesList()}
@@ -145,29 +181,35 @@ export default function Inicio() {
         </div>
       </section>
 
-      {/* ── SEGURIDAD ── */}
-      <section className="section-public" style={{ background:'var(--white)' }}>
+      {/* ── SEGURIDAD (CON BURBUJA QUE SIGUE EL CURSOR) ── */}
+      <section className="section-public" style={{ background:'var(--white)', position: 'relative' }}>
         <div className="container">
           <div className="row align-items-center g-5">
             <div className="col-md-6 reveal-on-scroll">
               <p className="section-eyebrow">Seguridad</p>
               <h2>Blindaje total de tus datos sensibles</h2>
-              <p style={{ color:'var(--text-light)', marginBottom:24, lineHeight:1.75 }}>
-                Cada acceso a tu CURP, nombre o datos de contacto genera una alerta 
-                instantánea a tu correo y un registro auditables en nuestra base de datos.
-              </p>
-              <ul style={{ listStyle:'none', padding:0, display:'flex', flexDirection:'column', gap:10 }}>
+              <ul style={{ listStyle:'none', padding:0, display:'flex', flexDirection:'column', marginTop: '20px' }}>
                 {[
-                  '✅ Aislamiento de datos PII en bóveda Oracle separada',
-                  '✅ Triggers automáticos para notificaciones en tiempo real',
-                  '✅ Cumplimiento LFPDPPP México',
-                  '✅ Cifrado TLS/SSL en todas las transacciones',
-                  '✅ Exportación XML según NOM-024-SSA3-2012',
+                  { t: 'Tu información está en una caja fuerte', d: 'Tus datos personales y sensibles no están mezclados con el resto del sistema; viven en un espacio aislado y ultra protegido, como una bóveda digital exclusiva.' },
+                  { t: 'Avisos inmediatos', d: 'Contamos con un sistema inteligente que te notifica al instante cada vez que alguien consulta tu historial, para que siempre sepas quién entra y qué información está viendo.' },
+                  { t: 'Totalmente apegados a la ley', d: 'Cumplimos estrictamente con las leyes mexicanas de protección de datos personales, garantizando que tu información se maneje de forma ética y legal.' },
+                  { t: 'Conexiones blindadas', d: 'Toda la información que viaja desde tu computadora o celular hasta nuestra plataforma está cifrada con la misma tecnología de seguridad que utilizan los bancos internacionales.' },
+                  { t: 'Formato médico estandarizado', d: 'Tu expediente cumple con las normas oficiales de salud de México, asegurando que si algún día necesitas llevar tus documentos a otro hospital o médico, sean perfectamente entendibles y válidos.' }
                 ].map((item,i) => (
-                  <li key={i} style={{ fontSize:'0.93rem', fontWeight:500, color:'var(--text-main)' }}>{item}</li>
+                  <li 
+                    key={i} 
+                    className="security-list-item"
+                    onMouseEnter={() => setActiveSecurityDesc(item.d)}
+                    onMouseLeave={() => setActiveSecurityDesc('')}
+                    onMouseMove={handleMouseMove}
+                  >
+                    <strong style={{ color:'var(--purple-accent)', display:'block', fontSize: '1.1rem' }}>{item.t}</strong>
+                  </li>
                 ))}
               </ul>
             </div>
+            
+            {/* ── COMPONENTE GRÁFICO DE SEGURIDAD ── */}
             <div className="col-md-6 reveal-on-scroll" style={{ animationDelay:'0.15s' }}>
               <div style={{ background:'var(--purple-dark)', borderRadius:'var(--radius-xl)', overflow:'hidden', boxShadow:'var(--card-shadow-lg)' }}>
                 <div style={{ padding:'14px 18px', background:'rgba(255,255,255,0.06)', borderBottom:'1px solid rgba(255,255,255,0.08)', display:'flex', alignItems:'center', gap:10 }}>
@@ -197,6 +239,28 @@ export default function Inicio() {
             </div>
           </div>
         </div>
+
+        {/* ── BURBUJA FLOTANTE QUE SIGUE AL CURSOR ── */}
+        {activeSecurityDesc && (
+          <div style={{
+            position: 'fixed',
+            top: mousePos.y + 15, 
+            left: mousePos.x + 15,
+            background: 'var(--purple-dark)',
+            color: 'white',
+            padding: '12px 16px',
+            borderRadius: '8px',
+            maxWidth: '300px',
+            boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
+            pointerEvents: 'none', /* Evita que el ratón "choque" con la burbuja */
+            zIndex: 9999,
+            fontSize: '0.85rem',
+            lineHeight: 1.5,
+            animation: 'fadeInTooltip 0.2s ease-out'
+          }}>
+            {activeSecurityDesc}
+          </div>
+        )}
       </section>
 
       {/* ── CTA FINAL ── */}
@@ -230,12 +294,104 @@ export default function Inicio() {
         </div>
       </footer>
 
+      {/* ── ESTILOS CSS INYECTADOS ── */}
       <style>{`
         .reveal-on-scroll { opacity: 0; transform: translateY(24px); transition: opacity 0.5s ease, transform 0.5s ease; }
         .reveal-on-scroll.revealed { opacity: 1; transform: translateY(0); }
+        
         @media (max-width: 640px) {
           .hero-actions { flex-direction: column; }
           .cta-section .d-flex { flex-direction: column; align-items: center; }
+          .hero-services-grid { grid-template-columns: 1fr !important; }
+        }
+
+        /* ── BURBUJA Y HOVER DE SEGURIDAD ── */
+        .security-list-item {
+          padding: 14px 10px;
+          border-bottom: 1px solid rgba(0,0,0,0.06);
+          cursor: crosshair; /* Cursor para indicar zona interactiva */
+          transition: background 0.3s ease, padding-left 0.3s ease;
+          border-radius: 6px;
+        }
+        .security-list-item:hover {
+          background: rgba(0,0,0,0.02);
+          padding-left: 15px;
+        }
+        @keyframes fadeInTooltip {
+          from { opacity: 0; transform: translateY(5px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── GRID 2x2 DE ESPECIALIDADES ── */
+        .hero-services-grid {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(180px, 1fr));
+          gap: 12px;
+          max-width: 440px;
+        }
+
+        .service-block {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          background: rgba(255, 255, 255, 0.06);
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          padding: 12px 18px;
+          border-radius: 12px;
+          color: white;
+          font-weight: 500;
+          font-size: 0.95rem;
+          transition: all 0.3s ease, box-shadow 0.3s ease;
+          cursor: pointer;
+          position: relative;
+          overflow: hidden; 
+        }
+
+        /* ILUMINACIÓN DE BORDES AL PASAR EL MOUSE */
+        .service-block:hover {
+          background: rgba(255, 255, 255, 0.15);
+          border-color: rgba(255, 255, 255, 0.9);
+          box-shadow: 0 0 15px rgba(255, 255, 255, 0.4), inset 0 0 10px rgba(255, 255, 255, 0.2);
+        }
+
+        /* ── ANIMACIONES DE FONDO PARA CADA BOTÓN ── */
+        .service-block:hover {
+          background-color: rgba(255, 255, 255, 0.04) !important; 
+        }
+
+        /* Estilos base del pseudo-elemento (los iconos ocultos) */
+        .service-block::before {
+          position: absolute;
+          top: 0; left: -50%; width: 200%; height: 100%;
+          display: flex; align-items: center; opacity: 0; pointer-events: none;
+          transition: opacity 0.3s ease;
+          font-size: 1.5rem; /* Más grande para que sea muy visible */
+          text-shadow: 0 0 8px rgba(255,255,255,0.4); /* Resplandor brillante */
+          z-index: 0;
+        }
+
+        /* Al pasar el mouse, revelamos los símbolos y arrancamos la animación */
+        .service-block:hover::before {
+          opacity: 0.35; /* Opacidad alta para distinguirse perfectamente */
+          animation: slideIcons 5s linear infinite;
+        }
+
+        /* Asignación de patrones visuales para cada área */
+        .block-odontologia::before { content: '🦷 🦷 🦷 🦷 🦷 🦷 🦷 🦷'; }
+        .block-psicologia::before { content: '🧠 🧠 🧠 🧠 🧠 🧠 🧠 🧠'; }
+        .block-medicina::before { content: '✚ 🩺 ✚ 🩺 ✚ 🩺 ✚ 🩺'; }
+        .block-veterinaria::before { content: '🐾 🐾 🐾 🐾 🐾 🐾 🐾 🐾'; }
+
+        /* Mantenemos el icono SVG principal y el texto encima de la animación */
+        .service-block-icon, .service-block-text {
+          position: relative;
+          z-index: 1;
+        }
+
+        /* Animación suave de deslizamiento infinito */
+        @keyframes slideIcons {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(15%); }
         }
       `}</style>
     </main>
