@@ -26,7 +26,7 @@ function RegistroPaciente() {
   return (
     <div className="container mt-5">
       <div className="card shadow-sm border-0 p-4" style={{maxWidth: '600px', margin: '0 auto', backgroundColor: 'var(--white)'}}>
-        <h2 style={{color: 'var(--purple-accent)', marginBottom: '1.5rem'}}>Nuevo Expediente (Paciente)</h2>
+        <h2 style={{color: 'var(--purple-accent)', marginBottom: '1.5rem'}}>Nuevo Paciente</h2>
         
         <form onSubmit={guardarPaciente}>
           <div className="mb-3">
