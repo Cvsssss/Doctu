@@ -2,70 +2,105 @@ import React, { useState } from 'react';
 import '../styles/style.css';
 
 function RegistroPaciente() {
-  // Estado para alternar entre paciente y médico
   const [tipoUsuario, setTipoUsuario] = useState('paciente');
 
-  // El estado ahora es general ("usuario") e incluye la cédula
   const [usuario, setUsuario] = useState({
     nombreCompleto: '',
     curp: '',
     email: '',
     telefono: '',
     password: '',
+    confirmarPassword: '', // Nuevo campo para repetir contraseña
     cedula: ''
   });
 
-  // Estado para manejar el mensaje de error visual de la cédula
-  const [errorCedula, setErrorCedula] = useState('');
+  // Centralizamos todos los errores en un solo objeto
+  const [errores, setErrores] = useState({});
 
   const manejarCambio = (e) => {
     const { name, value } = e.target;
-    
     setUsuario({
       ...usuario,
       [name]: value
     });
 
-    // Si el usuario está escribiendo en el campo cédula, validamos en tiempo real
-    if (name === 'cedula' && tipoUsuario === 'medico') {
-      validarCedula(value);
+    // Limpiamos el error de ese campo específico cuando el usuario empieza a escribir de nuevo
+    if (errores[name]) {
+      setErrores({ ...errores, [name]: '' });
     }
   };
 
-  const validarCedula = (valor) => {
-    // 1. Validar que no esté vacía
-    if (!valor) {
-      setErrorCedula('La cédula es obligatoria.');
-      return false;
+  const validarFormulario = () => {
+    let nuevosErrores = {};
+
+    // 1. Nombre Completo: Mínimo 2 espacios (3 palabras) sin decirle explícitamente la regla de los espacios
+    const cantidadEspacios = (usuario.nombreCompleto.trim().match(/ /g) || []).length;
+    if (cantidadEspacios < 2) {
+      nuevosErrores.nombreCompleto = 'Parece que falta un nombre o apellido.';
     }
-    // 2. Validar que no tenga "basura" (solo se permiten números)
-    if (!/^\d+$/.test(valor)) {
-      setErrorCedula('Dato incorrecto: La cédula solo debe contener números, sin letras ni espacios.');
-      return false;
+
+    // 2. CURP: Exactamente 18 caracteres, sin ser puras letras ni puros números
+    const curpMayus = usuario.curp.toUpperCase();
+    const esPuroNumero = /^\d+$/.test(curpMayus);
+    const esPuraLetra = /^[A-Z]+$/.test(curpMayus);
+    
+    if (curpMayus.length !== 18 || esPuroNumero || esPuraLetra) {
+      nuevosErrores.curp = 'CURP inválida. Verifica que sean 18 caracteres alfanuméricos.';
     }
-    // 3. Validar longitud (7 u 8 dígitos)
-    if (valor.length < 7 || valor.length > 8) {
-      setErrorCedula('Dato incorrecto: Una cédula profesional válida debe tener 7 u 8 dígitos.');
-      return false;
+
+    // 3. Teléfono: Exactamente 10 dígitos numéricos
+    if (!/^\d{10}$/.test(usuario.telefono)) {
+      nuevosErrores.telefono = 'El número debe contener exactamente 10 dígitos.';
+    }
+
+    // 4. Cédula (Solo si es médico)
+    if (tipoUsuario === 'medico') {
+      if (!usuario.cedula) {
+        nuevosErrores.cedula = 'La cédula es obligatoria.';
+      } else if (!/^\d+$/.test(usuario.cedula)) {
+        nuevosErrores.cedula = 'Dato incorrecto: La cédula solo debe contener números.';
+      } else if (usuario.cedula.length < 7 || usuario.cedula.length > 8) {
+        nuevosErrores.cedula = 'Dato incorrecto: La cédula debe tener 7 u 8 dígitos.';
+      }
+    }
+
+// 5. Contraseña (NIST)
+    // Reglas: Min 10 caracteres, 1 mayúscula, 1 número, 1 carácter especial
+    const regexComplejidad = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{10,}$/;
+    
+    // Función para detectar más de 2 caracteres iguales consecutivos (ej: 'aaa' o '111')
+    const tieneCaracteresRepetidos = (str) => {
+      return /(.)\1\1/.test(str);
+    };
+
+    if (!regexComplejidad.test(usuario.password)) {
+      nuevosErrores.password = 'La contraseña debe tener al menos 10 caracteres, una mayúscula, un número y un carácter especial.';
+    } else if (tieneCaracteresRepetidos(usuario.password)) {
+      nuevosErrores.password = 'La contraseña no puede tener más de 2 caracteres idénticos consecutivos.';
     }
     
-    // Si pasa todas las pruebas, limpiamos el error
-    setErrorCedula('');
-    return true;
+    if (usuario.password !== usuario.confirmarPassword) {
+      nuevosErrores.confirmarPassword = 'Las contraseñas no coinciden.';
+    }
+
+    setErrores(nuevosErrores);
+    
+    // Si el objeto de errores está vacío, el formulario es válido
+    return Object.keys(nuevosErrores).length === 0;
   };
 
   const guardarUsuario = (e) => {
     e.preventDefault();
     
-    // Antes de enviar, si es médico, damos una última revisada a la cédula
-    if (tipoUsuario === 'medico') {
-      if (!validarCedula(usuario.cedula)) {
-        return; // Detiene el envío del formulario si hay error
-      }
+    if (!validarFormulario()) {
+      return; // Frenamos el envío si hay algún error
     }
 
-    console.log(`Datos a enviar a Supabase (Tipo: ${tipoUsuario}):`, usuario);
-    // Aquí iría tu fetch o supabase.from().insert()
+    // Limpiamos la confirmación antes de enviarlo al backend
+    const datosAEnviar = { ...usuario };
+    delete datosAEnviar.confirmarPassword;
+
+    console.log(`Datos listos para Supabase (Tipo: ${tipoUsuario}):`, datosAEnviar);
   };
 
   return (
@@ -75,56 +110,64 @@ function RegistroPaciente() {
           Registro en Doctu
         </h2>
 
-        {/* Botones para seleccionar el tipo de usuario */}
         <div className="d-flex justify-content-center mb-4">
           <div className="btn-group" role="group">
             <button 
               type="button" 
               className={`btn ${tipoUsuario === 'paciente' ? 'btn-primary' : 'btn-outline-primary'}`}
-              onClick={() => setTipoUsuario('paciente')}
+              onClick={() => { setTipoUsuario('paciente'); setErrores({}); }}
             >
               Soy Paciente
             </button>
             <button 
               type="button" 
               className={`btn ${tipoUsuario === 'medico' ? 'btn-primary' : 'btn-outline-primary'}`}
-              onClick={() => setTipoUsuario('medico')}
+              onClick={() => { setTipoUsuario('medico'); setErrores({}); }}
             >
               Soy Médico
             </button>
           </div>
         </div>
         
-        <form onSubmit={guardarUsuario}>
+        <form onSubmit={guardarUsuario} noValidate>
           <div className="mb-3">
             <label className="form-label">Nombre Completo</label>
-            <input type="text" className="form-control" name="nombreCompleto" value={usuario.nombreCompleto} onChange={manejarCambio} required />
+            <input 
+              type="text" 
+              className={`form-control ${errores.nombreCompleto ? 'is-invalid' : ''}`} 
+              name="nombreCompleto" 
+              value={usuario.nombreCompleto} 
+              onChange={manejarCambio} 
+            />
+            {errores.nombreCompleto && <div className="invalid-feedback fw-bold">⚠️ {errores.nombreCompleto}</div>}
           </div>
 
           <div className="mb-3">
             <label className="form-label">CURP</label>
-            <input type="text" className="form-control" name="curp" value={usuario.curp} onChange={manejarCambio} maxLength="18" required />
+            <input 
+              type="text" 
+              className={`form-control ${errores.curp ? 'is-invalid' : ''}`} 
+              name="curp" 
+              value={usuario.curp} 
+              onChange={manejarCambio} 
+              maxLength="18" 
+              style={{ textTransform: 'uppercase' }}
+            />
+            {errores.curp && <div className="invalid-feedback fw-bold">⚠️ {errores.curp}</div>}
           </div>
 
-          {/* RENDERIZADO CONDICIONAL: Solo aparece si selecciona "Soy Médico" */}
           {tipoUsuario === 'medico' && (
             <div className="mb-3">
               <label className="form-label">Cédula Profesional</label>
               <input 
                 type="text" 
-                className={`form-control ${errorCedula ? 'is-invalid' : ''}`} 
+                className={`form-control ${errores.cedula ? 'is-invalid' : ''}`} 
                 name="cedula" 
                 value={usuario.cedula} 
                 onChange={manejarCambio} 
                 maxLength="8"
-                required 
               />
-              {/* Etiqueta dinámica de error */}
-              {errorCedula && (
-                <div className="invalid-feedback fw-bold">
-                  ⚠️ {errorCedula}
-                </div>
-              )}
+              {errores.cedula && <div className="invalid-feedback fw-bold">⚠️ {errores.cedula}</div>}
             </div>
           )}
 
@@ -134,17 +177,46 @@ function RegistroPaciente() {
           </div>
 
           <div className="mb-3">
-            <label className="form-label">Teléfono</label>
-            <input type="tel" className="form-control" name="telefono" value={usuario.telefono} onChange={manejarCambio} />
+            <label className="form-label">Teléfono (10 dígitos)</label>
+            <input 
+              type="tel" 
+              className={`form-control ${errores.telefono ? 'is-invalid' : ''}`} 
+              name="telefono" 
+              value={usuario.telefono} 
+              onChange={manejarCambio} 
+              maxLength="10"
+            />
+            {errores.telefono && <div className="invalid-feedback fw-bold">⚠️ {errores.telefono}</div>}
           </div>
 
-          <div className="mb-4">
-            <label className="form-label">Contraseña de Portal</label>
-            <input type="password" className="form-control" name="password" value={usuario.password} onChange={manejarCambio} required />
+          <div className="row mb-4">
+            <div className="col-md-6">
+              <label className="form-label">Contraseña</label>
+              <input 
+                type="password" 
+                className={`form-control ${errores.password ? 'is-invalid' : ''}`} 
+                name="password" 
+                value={usuario.password} 
+                onChange={manejarCambio} 
+              />
+              {errores.password && <div className="invalid-feedback fw-bold">⚠️ {errores.password}</div>}
+            </div>
+            
+            <div className="col-md-6">
+              <label className="form-label">Repetir Contraseña</label>
+              <input 
+                type="password" 
+                className={`form-control ${errores.confirmarPassword ? 'is-invalid' : ''}`} 
+                name="confirmarPassword" 
+                value={usuario.confirmarPassword} 
+                onChange={manejarCambio} 
+              />
+              {errores.confirmarPassword && <div className="invalid-feedback fw-bold">⚠️ {errores.confirmarPassword}</div>}
+            </div>
           </div>
 
           <button type="submit" className="btn btn-primary w-100" style={{ backgroundColor: 'var(--purple-accent)', border: 'none' }}>
-            Guardar {tipoUsuario === 'medico' ? 'Médico' : 'Paciente'}
+            Completar Registro
           </button>
         </form>
       </div>
