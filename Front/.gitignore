@@ -1,16 +1,16 @@
-# Dependencias (el "carrito" de Node.js)
+# Dependencias
 node_modules/
 /dist
 /build
 
-# Archivos específicos de macOS (M3)
+# Archivos específicos de macOS 
 .DS_Store
 .AppleDouble
 .LSOverride
 Icon
 
 
-# Variables de entorno (¡Privacidad!)
+# Variables de entorno 
 .env
 .env.local
 .env.development.local
@@ -22,7 +22,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Herramientas de edición (VS Code)
+# Herramientas de edición
 .vscode/
 .idea/
 *.suo
