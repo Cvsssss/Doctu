@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../App'; // IMPORTANTE: Importamos el contexto desde App.js
 import '../styles/style.css';
 
 function Login() {
   const [esMedico, setEsMedico] = useState(false);
   const navigate = useNavigate(); 
+  
+  // Extraemos la función login del contexto global
+  const { login } = useAuth(); 
 
   const [credenciales, setCredenciales] = useState({
     email: '',
@@ -49,19 +53,6 @@ function Login() {
     return Object.keys(nuevosErrores).length === 0;
   };
 
-  const authenticateUser = async (credentials) => {
-    console.log("Validando en base de datos...", credentials);
-    return new Promise(resolve => setTimeout(resolve, 800));
-  };
-  
-  const routeUserByRole = (role) => {
-    if (role === "Médico") {
-      navigate('/dashboard-medico');
-    } else {
-      navigate('/portal-paciente');
-    }
-  };
-
   const manejarSubmit = async (e) => {
     e.preventDefault();
     
@@ -69,10 +60,27 @@ function Login() {
       return; 
     }
 
-    const role = esMedico ? "Médico" : "Paciente";
+    // 1. Definimos el rol en formato estricto ('medico' o 'paciente') como lo espera App.js
+    const rolContexto = esMedico ? "medico" : "paciente";
     
-    await authenticateUser({ email: credenciales.email, password: credenciales.password, role: role });
-    routeUserByRole(role);
+    // 2. Simulamos la respuesta exitosa del Backend
+    const usuarioSimulado = {
+      id: 1,
+      nombre: esMedico ? 'Dr. Prueba' : 'Paciente Prueba',
+      email: credenciales.email,
+      rol: rolContexto,
+      especialidad: esMedico ? 'Medicina General' : undefined
+    };
+
+    // 3. ACTUALIZAMOS EL CONTEXTO GLOBAL (La llave maestra)
+    login(usuarioSimulado);
+    
+    // 4. Ahora sí, enrutamos con permiso concedido
+    if (rolContexto === "medico") {
+      navigate('/dashboard-medico');
+    } else {
+      navigate('/portal-paciente');
+    }
   };
 
   return (
@@ -105,26 +113,23 @@ function Login() {
 
         <form onSubmit={manejarSubmit} noValidate>
           <div className="mb-3">
-            <label htmlFor="email" className="form-label" style={{color: 'var(--text-light)'}}>
-              Correo Electrónico
-            </label>
-              <input 
-                type="email" 
-                id="email"                    /* Ancla para el navegador */
-                autoComplete="email"          /* Mágica línea que despierta el autocompletado de Google */
-                className={`form-control ${errores.email ? 'is-invalid' : ''}`}
-                name="email"
-                value={credenciales.email}
-                onChange={manejarCambio}
-                placeholder="correo@ejemplo.com" 
-                />
-                  {errores.email && <div className="invalid-feedback fw-bold">⚠️ {errores.email}</div>}
+            <label htmlFor="email" className="form-label" style={{color: 'var(--text-light)'}}>Correo Electrónico</label>
+            <input 
+              type="email" 
+              id="email"
+              autoComplete="email"
+              className={`form-control ${errores.email ? 'is-invalid' : ''}`}
+              name="email"
+              value={credenciales.email}
+              onChange={manejarCambio}
+              placeholder="correo@ejemplo.com" 
+            />
+            {errores.email && <div className="invalid-feedback fw-bold">⚠️ {errores.email}</div>}
           </div>
 
           <div className="mb-4">
-            <label htmlFor="password" className="form-label" style={{color: 'var(--text-light)'}}>Contraseña</label>
+            <label className="form-label" style={{color: 'var(--text-light)'}}>Contraseña</label>
             
-            {/* Contenedor relativo para posicionar el ícono absolutamente sobre él */}
             <div style={{ position: 'relative' }}>
               <input 
                 type={mostrarPassword ? "text" : "password"} 
@@ -133,10 +138,9 @@ function Login() {
                 value={credenciales.password}
                 onChange={manejarCambio}
                 placeholder="********" 
-                style={{ paddingRight: '45px' }} /* Espacio extra para que el texto no pise el ojo */
+                style={{ paddingRight: '45px' }} 
               />
               
-              {/* Ojo posicionado de manera flotante */}
               <span 
                 style={{
                   position: 'absolute',
@@ -145,7 +149,7 @@ function Login() {
                   transform: 'translateY(-50%)',
                   cursor: 'pointer',
                   color: 'var(--text-light)',
-                  zIndex: 10 /* Asegura que flote por encima del input y de los íconos de Bootstrap */
+                  zIndex: 10 
                 }}
                 onMouseDown={() => setMostrarPassword(true)}
                 onMouseUp={() => setMostrarPassword(false)}
@@ -160,8 +164,6 @@ function Login() {
                 )}
               </span>
             </div>
-            
-            {/* Mensaje de error extraído del contenedor relativo */}
             {errores.password && <div className="text-danger mt-1 fw-bold" style={{fontSize: '0.875em'}}>⚠️ {errores.password}</div>}
           </div>
 

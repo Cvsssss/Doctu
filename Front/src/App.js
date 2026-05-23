@@ -29,66 +29,85 @@ export const useAuth = () => {
 };
 
 /* ─── Ruta protegida ─── */
+// Agregamos un pequeño log para que puedas ver en la consola web qué está decidiendo la ruta
 const Protegida = ({ children, rol }) => {
   const { user } = useAuth();
-  if (!user) return <Navigate to="/login" replace />;
+  
+  // Si no hay usuario en el contexto, rebota a login
+  if (!user) {
+    console.warn("⚠️ Acceso denegado: Usuario no autenticado. Redirigiendo a /login");
+    return <Navigate to="/login" replace />;
+  }
+  
+  // Si hay usuario pero su rol no coincide con la ruta que quiere ver, lo manda a SU portal
   if (rol && user.rol !== rol) {
+    console.warn(`⚠️ Rol incorrecto: Se esperaba ${rol} pero el usuario es ${user.rol}`);
     return <Navigate to={user.rol === 'medico' ? '/dashboard-medico' : '/portal-paciente'} replace />;
   }
+  
+  // Si todo está bien, renderiza la pantalla solicitada
   return children;
 };
 
-/* ─── App ─── */
-function App() {
-  /**
-   * user: {
-   *   id:           number,
-   *   nombre:       string,
-   *   email:        string,
-   *   rol:          'medico' | 'paciente',
-   *   especialidad: string | undefined,
-   * }
-   */
+/* ─── Componente Principal de Rutas ─── */
+function AppRoutes() {
+  const { user } = useAuth();
 
-  
+  return (
+    <div className="app-container">
+      <Navbar />
+      <Routes>
+        {/* Públicas */}
+        <Route path="/"         element={<Inicio />} />
+        
+        {/* Lógica dinámica para la pantalla de Login */}
+        <Route
+          path="/login"
+          element={
+            !user
+              ? <Login />
+              : <Navigate to={user.rol === 'medico' ? '/dashboard-medico' : '/portal-paciente'} replace />
+          }
+        />
+        
+        <Route path="/registro" element={<RegistroPaciente />} />
+
+        {/* Médico */}
+        <Route path="/dashboard-medico" element={<Protegida rol="medico"><DashboardMedico /></Protegida>} />
+        <Route path="/buscar-paciente"  element={<Protegida rol="medico"><BusquedaPaciente /></Protegida>} />
+        <Route path="/llenado-expediente" element={<Protegida rol="medico"><LlenadoExpediente /></Protegida>} />
+        <Route path="/calendario"       element={<Protegida rol="medico"><CalendarioBuzon /></Protegida>} />
+
+        {/* Paciente */}
+        <Route path="/portal-paciente" element={<Protegida rol="paciente"><PortalPaciente /></Protegida>} />
+        <Route path="/pasarela-pago"   element={<Protegida rol="paciente"><PasarelaPagos /></Protegida>} />
+
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </div>
+  );
+}
+
+/* ─── App (Proveedor Global) ─── */
+function App() {
   const [user, setUser] = useState(null);
 
-  const login  = (userData) => setUser(userData);
-  const logout = () => setUser(null);
+  // Funciones globales para manejar la sesión
+  const login  = (userData) => {
+    console.log("✅ Sesión iniciada globalmente:", userData);
+    setUser(userData);
+  };
+  const logout = () => {
+    console.log("🔴 Sesión cerrada");
+    setUser(null);
+  };
 
   return (
     <AuthContext.Provider value={{ user, login, logout }}>
       <Router>
-        <div className="app-container">
-          <Navbar />
-
-          <Routes>
-            {/* Públicas */}
-            <Route path="/"         element={<Inicio />} />
-            <Route
-              path="/login"
-              element={
-                !user
-                  ? <Login />
-                  : <Navigate to={user.rol === 'medico' ? '/dashboard-medico' : '/portal-paciente'} replace />
-              }
-            />
-            <Route path="/registro" element={<RegistroPaciente />} />
-
-            {/* Médico */}
-            <Route path="/dashboard-medico" element={<Protegida rol="medico"><DashboardMedico /></Protegida>} />
-            <Route path="/buscar-paciente"  element={<Protegida rol="medico"><BusquedaPaciente /></Protegida>} />
-            <Route path="/llenado-expediente" element={<Protegida rol="medico"><LlenadoExpediente /></Protegida>} />
-            <Route path="/calendario"       element={<Protegida rol="medico"><CalendarioBuzon /></Protegida>} />
-
-            {/* Paciente */}
-            <Route path="/portal-paciente" element={<Protegida rol="paciente"><PortalPaciente /></Protegida>} />
-            <Route path="/pasarela-pago"   element={<Protegida rol="paciente"><PasarelaPagos /></Protegida>} />
-
-            {/* Fallback */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </div>
+        {/* Delegamos las rutas a un componente hijo para que pueda consumir el contexto de forma segura */}
+        <AppRoutes />
       </Router>
     </AuthContext.Provider>
   );
