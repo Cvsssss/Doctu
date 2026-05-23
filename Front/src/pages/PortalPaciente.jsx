@@ -1,38 +1,53 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/style.css';
 import VisorExpediente from './VisorExpediente';
+import { useAuth } from '../App'; // 1. IMPORTANTE: Conectamos con el estado global de App.js
 
 function PortalPaciente() {
-  // Estado inicial: El portal siempre abre en 'citas'
+  const { user } = useAuth(); // 2. Extraemos el usuario autenticado (trae id, nombre, email, rol, etc.)
+  
   const [vistaActiva, setVistaActiva] = useState('citas');
   const [paciente, setPaciente] = useState(null);
   const [citas, setCitas] = useState([]);
 
-  // 1. Cargar la bienvenida (Simula base de datos)
-  const loadPatientWelcome = async (patientId) => {
-    console.log(`Cargando portal para paciente ${patientId}`);
-    setPaciente({ id: patientId, nombre: 'Juan Pérez' });
+  // 3. Modificamos para aceptar los datos reales del contexto o hacer el GET
+  const loadPatientWelcome = async (usuarioGlobal) => {
+    if (!usuarioGlobal) return;
+
+    console.log(`Cargando portal para paciente ID: ${usuarioGlobal.id}`);
+    
+    /* ESTRATEGIA RECOMENDADA:
+       - Si viene del Registro: El contexto ya tiene su 'nombreCompleto' u 'nombre'.
+       - Si viene del Login: Aquí puedes meter tu método GET apuntando a tu base de datos si requieres más info:
+         const { data, error } = await supabase.from('pacientes').select('*').eq('id', usuarioGlobal.id).single();
+    */
+
+    setPaciente({
+      id: usuarioGlobal.id,
+      // Usamos 'nombre' o 'nombreCompleto' dependiendo de cómo mapeaste el objeto en Login/Registro
+      nombre: usuarioGlobal.nombre || usuarioGlobal.nombreCompleto || 'Paciente'
+    });
   };
 
-  // 2. Obtener próximas citas
+  // 4. Obtener próximas citas usando el ID dinámico real
   const fetchUpcomingAppointments = async (patientId) => {
-    // Mock simulando conexión a Oracle (Agenda_Citas)
+    if (!patientId) return;
+    
+    console.log(`Haciendo GET de citas en Agenda_Citas para el paciente: ${patientId}`);
+    // Mock simulando conexión a la base de datos (Filtrado por el ID real del usuario)
     setCitas([
       { id: 1, fecha: '2026-05-20', hora: '10:00', doctor: 'Dr. Arturo (Medicina General)', estado: 'Pendiente de Pago' },
       { id: 2, fecha: '2026-06-05', hora: '16:00', doctor: 'Dra. Elena (Odontología)', estado: 'Confirmada' }
     ]);
   };
 
-  // 3. Cambiar la vista principal (Patrón Strategy)
   const switchMainView = (viewType) => {
     setVistaActiva(viewType);
   };
 
-  // 4. Procesar pagos anticipados (Ventaja competitiva del negocio)
   const processNewPayment = async (appointmentId, paymentMethod) => {
     console.log(`Procesando pago con ${paymentMethod} para la cita ${appointmentId}`);
     
-    // Simular latencia de la pasarela de pago
     setTimeout(() => {
       setCitas(citas.map(c => 
         c.id === appointmentId ? { ...c, estado: 'Confirmada (Pagado)' } : c
@@ -41,13 +56,14 @@ function PortalPaciente() {
     }, 1000);
   };
 
+  // 5. El useEffect ahora reacciona inmediatamente al usuario global que provee App.js
   useEffect(() => {
-    // Al montar el componente, cargamos los datos del paciente logueado (ej. ID 101)
-    loadPatientWelcome(101);
-    fetchUpcomingAppointments(101);
-  }, []);
+    if (user) {
+      loadPatientWelcome(user);
+      fetchUpcomingAppointments(user.id);
+    }
+  }, [user]); // Al poner 'user' como dependencia, si cambia la sesión, se actualiza el portal automáticamente
 
-  // Función núcleo del Patrón Strategy: Decide qué JSX retornar
   const renderVistaActiva = () => {
     switch(vistaActiva) {
       case 'citas':
@@ -83,7 +99,6 @@ function PortalPaciente() {
         return (
             <div className="animacion-entrada">
             <h3 className="text-purple mb-4" style={{fontWeight: 'bold'}}>Mi Historial Clínico</h3>
-            {/* visor completo */}
             <VisorExpediente />
             </div>
         );
@@ -98,7 +113,10 @@ function PortalPaciente() {
         {/* Sidebar / Menú de Navegación Lateral */}
         <div className="col-md-3">
           <div className="card shadow-sm border-0 p-4 sticky-top" style={{backgroundColor: 'var(--white)', top: '100px'}}>
-            <h4 className="text-purple mb-4" style={{fontWeight: 'bold'}}>Hola, <br/>{paciente?.nombre}</h4>
+            <h4 className="text-purple mb-4" style={{fontWeight: 'bold'}}>
+              Hola, <br/>
+              {paciente ? paciente.nombre : 'Cargando...'}
+            </h4>
             
             <div className="d-flex flex-column gap-2">
               <button 

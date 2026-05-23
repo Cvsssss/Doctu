@@ -1,8 +1,14 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../App'; // IMPORTANTE: Importamos el contexto desde App.js
 import '../styles/style.css';
 
 function RegistroPaciente() {
   const [tipoUsuario, setTipoUsuario] = useState('paciente');
+  const navigate = useNavigate(); 
+  
+  // Extraemos la función login del contexto global
+  const { login } = useAuth(); 
 
   const [usuario, setUsuario] = useState({
     nombreCompleto: '',
@@ -10,11 +16,10 @@ function RegistroPaciente() {
     email: '',
     telefono: '',
     password: '',
-    confirmarPassword: '', // Nuevo campo para repetir contraseña
+    confirmarPassword: '', 
     cedula: ''
   });
 
-  // Centralizamos todos los errores en un solo objeto
   const [errores, setErrores] = useState({});
 
   const manejarCambio = (e) => {
@@ -24,7 +29,6 @@ function RegistroPaciente() {
       [name]: value
     });
 
-    // Limpiamos el error de ese campo específico cuando el usuario empieza a escribir de nuevo
     if (errores[name]) {
       setErrores({ ...errores, [name]: '' });
     }
@@ -33,13 +37,11 @@ function RegistroPaciente() {
   const validarFormulario = () => {
     let nuevosErrores = {};
 
-    // 1. Nombre Completo: Mínimo 2 espacios (3 palabras) sin decirle explícitamente la regla de los espacios
     const cantidadEspacios = (usuario.nombreCompleto.trim().match(/ /g) || []).length;
     if (cantidadEspacios < 2) {
       nuevosErrores.nombreCompleto = 'Parece que falta un nombre o apellido.';
     }
 
-    // 2. CURP: Exactamente 18 caracteres, sin ser puras letras ni puros números
     const curpMayus = usuario.curp.toUpperCase();
     const esPuroNumero = /^\d+$/.test(curpMayus);
     const esPuraLetra = /^[A-Z]+$/.test(curpMayus);
@@ -48,12 +50,10 @@ function RegistroPaciente() {
       nuevosErrores.curp = 'CURP inválida. Verifica que sean 18 caracteres alfanuméricos.';
     }
 
-    // 3. Teléfono: Exactamente 10 dígitos numéricos
     if (!/^\d{10}$/.test(usuario.telefono)) {
       nuevosErrores.telefono = 'El número debe contener exactamente 10 dígitos.';
     }
 
-    // 4. Cédula (Solo si es médico)
     if (tipoUsuario === 'medico') {
       if (!usuario.cedula) {
         nuevosErrores.cedula = 'La cédula es obligatoria.';
@@ -64,11 +64,8 @@ function RegistroPaciente() {
       }
     }
 
-// 5. Contraseña (NIST)
-    // Reglas: Min 10 caracteres, 1 mayúscula, 1 número, 1 carácter especial
     const regexComplejidad = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{10,}$/;
     
-    // Función para detectar más de 2 caracteres iguales consecutivos (ej: 'aaa' o '111')
     const tieneCaracteresRepetidos = (str) => {
       return /(.)\1\1/.test(str);
     };
@@ -84,23 +81,41 @@ function RegistroPaciente() {
     }
 
     setErrores(nuevosErrores);
-    
-    // Si el objeto de errores está vacío, el formulario es válido
     return Object.keys(nuevosErrores).length === 0;
   };
 
-  const guardarUsuario = (e) => {
+  const guardarUsuario = async (e) => {
     e.preventDefault();
     
     if (!validarFormulario()) {
-      return; // Frenamos el envío si hay algún error
+      return; 
     }
 
-    // Limpiamos la confirmación antes de enviarlo al backend
     const datosAEnviar = { ...usuario };
     delete datosAEnviar.confirmarPassword;
 
-    console.log(`Datos listos para Supabase (Tipo: ${tipoUsuario}):`, datosAEnviar);
+    console.log(`Datos enviados exitosamente (Tipo: ${tipoUsuario}):`, datosAEnviar);
+
+    // --- Flujo de Autorización y Redirección ---
+    
+    // 1. Creamos el objeto de usuario simulando la respuesta de la base de datos
+    const usuarioRecienRegistrado = {
+      id: Math.floor(Math.random() * 1000), // Simulamos un ID de base de datos
+      nombre: usuario.nombreCompleto,
+      email: usuario.email,
+      rol: tipoUsuario, // 'medico' o 'paciente'
+      especialidad: tipoUsuario === 'medico' ? 'Pendiente' : undefined
+    };
+
+    // 2. Registramos la sesión globalmente para que App.js nos deje pasar
+    login(usuarioRecienRegistrado);
+
+    // 3. Redirigimos al portal que le corresponde
+    if (tipoUsuario === 'medico') {
+      navigate('/dashboard-medico');
+    } else {
+      navigate('/portal-paciente');
+    }
   };
 
   return (
