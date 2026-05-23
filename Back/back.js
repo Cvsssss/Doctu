@@ -1,8 +1,15 @@
 require('dotenv').config(); 
 const express = require('express');
+const cors = require('cors');
 const sgMail = require('@sendgrid/mail');
 
+const patientRoutes = require('./routes/patientRoutes');
+const appointmentRoutes = require('./routes/appointmentRoutes');
+const doctorRoutes = require('./routes/doctorRoutes');
+const expedienteRoutes = require('./routes/expedienteRoutes');
+
 const app = express();
+app.use(cors());
 app.use(express.json()); // Permite que el servidor entienda los datos que mande Supabase
 
 // Configuramos la llave secreta de SendGrid
@@ -12,6 +19,12 @@ sgMail.setApiKey(process.env.EMAIL_PASS);
 app.get('/', (req, res) => {
     res.send('Servidor de Doctu corriendo al 100%');
 });
+
+// Rutas de nuestra API
+app.use('/api/patients', patientRoutes);
+app.use('/api/appointments', appointmentRoutes);
+app.use('/api/doctors', doctorRoutes);
+app.use('/api/expedientes', expedienteRoutes);
 
 // EL PATRÓN OBSERVER (WEBHOOK)
 // Esta es la ruta que escuchará las alertas de Supabase

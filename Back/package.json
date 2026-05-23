@@ -1,6 +1,11 @@
 {
+  "scripts": {
+    "start": "node back.js"
+  },
   "dependencies": {
     "@sendgrid/mail": "^8.1.6",
+    "@supabase/supabase-js": "^2.106.1",
+    "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1"
   }
