@@ -58,7 +58,7 @@ function PasarelaPagos() {
           <div className="p-3 my-4 rounded" style={{ backgroundColor: '#F4FBF7', border: '1px solid #A5D6A7', fontSize: '0.9rem' }}>
             <strong>ID de Cita:</strong> #{consultaInfo.idCita}<br />
             <strong>Monto abonado:</strong> ${consultaInfo.monto.toFixed(2)} MXN<br />
-            <strong>Método:</strong> {metodo.toUpperCase()} (Cifrado TLS/SSL)
+            <strong>Método:</strong> {metodo.toUpperCase()} 
           </div>
           <button className="btn-pastel-primary w-100" onClick={() => navigate('/portal-paciente')}>
             Volver a Mis Citas
@@ -151,7 +151,7 @@ function PasarelaPagos() {
               </div>
 
               <div className="alert alert-secondary p-2 mb-4 text-center" style={{ fontSize: '0.8rem', border: 'none', backgroundColor: '#F0EFF5', color: 'var(--text-light)' }}>
-                🔒 Conexión cifrada de extremo a extremo mediante protocolo TLS/SSL.
+                
               </div>
 
               <button 
