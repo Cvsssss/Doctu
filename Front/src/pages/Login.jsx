@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../App'; // IMPORTANTE: Importamos el contexto desde App.js
 import '../styles/style.css';
+import { supabase } from '../config/supabaseClient';
 
 function Login() {
   const [esMedico, setEsMedico] = useState(false);
@@ -60,26 +61,55 @@ function Login() {
       return; 
     }
 
-    // 1. Definimos el rol en formato estricto ('medico' o 'paciente') como lo espera App.js
+    // Definimos el rol y la tabla a consultar dependiendo si es médico o paciente
     const rolContexto = esMedico ? "medico" : "paciente";
+    const tablaConsulta = esMedico ? "profesionales_perfiles" : "pacientes_pii";
     
-    // 2. Simulamos la respuesta exitosa del Backend
-    const usuarioSimulado = {
-      id: 1,
-      nombre: esMedico ? 'Dr. Prueba' : 'Paciente Prueba',
-      email: credenciales.email,
-      rol: rolContexto,
-      especialidad: esMedico ? 'Medicina General' : undefined
-    };
+    try {
+      console.log(`Intentando login real en la tabla ${tablaConsulta}...`);
+      
+      // Consultamos a Supabase buscando el email
+      const { data, error } = await supabase
+        .from(tablaConsulta)
+        .select('*')
+        .eq('email', credenciales.email)
+        .single(); // Esperamos un solo registro
 
-    // 3. ACTUALIZAMOS EL CONTEXTO GLOBAL (La llave maestra)
-    login(usuarioSimulado);
-    
-    // 4. Ahora sí, enrutamos con permiso concedido
-    if (rolContexto === "medico") {
-      navigate('/dashboard-medico');
-    } else {
-      navigate('/portal-paciente');
+      if (error || !data) {
+        setErrores({ ...errores, email: 'Usuario no encontrado o credenciales inválidas' });
+        return;
+      }
+
+      // Validamos la contraseña (Ojo: en producción esto se hace comparando hashes)
+      if (data.password_hash !== credenciales.password) {
+         setErrores({ ...errores, password: 'La contraseña es incorrecta' });
+         return;
+      }
+
+      // Si llegamos aquí, ¡el login fue exitoso! Armamos el objeto para el AuthContext
+      const usuarioValidado = {
+        id: esMedico ? data.id_profesional : data.id_paciente,
+        nombre: data.nombre_completo,
+        email: data.email,
+        rol: rolContexto,
+        especialidad: esMedico ? data.especialidad : undefined
+      };
+
+      console.log("¡Login exitoso!", usuarioValidado);
+      
+      // Actualizamos el contexto global
+      login(usuarioValidado);
+      
+      // Enrutamos al portal correspondiente
+      if (rolContexto === "medico") {
+        navigate('/dashboard-medico');
+      } else {
+        navigate('/portal-paciente');
+      }
+
+    } catch (error) {
+      console.error("Error crítico durante el login:", error);
+      alert("Hubo un problema de conexión con la base de datos.");
     }
   };
 

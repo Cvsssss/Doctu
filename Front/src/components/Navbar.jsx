@@ -114,7 +114,7 @@ export default function Navbar() {
                       <div className="dropdown-nav-role">
                         {user.rol === 'medico'
                           ? `🩺 Profesional · ${user.especialidad || 'Médico'}`
-                          : '🤝 Paciente'}
+                          : 'Paciente'}
                       </div>
                     </div>
                     <hr style={{ margin:'4px 0', borderColor:'var(--border-color)' }} />

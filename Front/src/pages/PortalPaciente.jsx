@@ -24,14 +24,27 @@ function PortalPaciente() {
   };
 
   // 4. Obtener próximas citas usando el ID dinámico real
+// 
   const fetchUpcomingAppointments = async (patientId) => {
     if (!patientId) return;
+    
+    console.log(`Solicitando citas al backend para el paciente: ${patientId}`);
+    
     try {
-      const res = await fetch(`http://localhost:3000/api/appointments/patient/${patientId}/upcoming`);
-      const data = await res.json();
-      setCitas(data);
+
+      const respuesta = await fetch(`http://localhost:3000/patient/${patientId}/upcoming`);
+      
+      if (!respuesta.ok) {
+        throw new Error('Error al conectar con el servidor');
+      }
+
+      const datosReales = await respuesta.json();
+      
+
+      setCitas(datosReales);
+      
     } catch (error) {
-      console.error("Error cargando citas:", error);
+      console.error("Hubo un problema trayendo las citas:", error);
     }
   };
 
