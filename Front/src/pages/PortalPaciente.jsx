@@ -1,18 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/style.css';
 import VisorExpediente from './VisorExpediente';
+import { useAuth } from '../App'; // 1. IMPORTANTE: Conectamos con el estado global de App.js
 
 function PortalPaciente() {
-  // Estado inicial: El portal siempre abre en 'citas'
+  const { user } = useAuth(); // 2. Extraemos el usuario autenticado (trae id, nombre, email, rol, etc.)
+  
   const [vistaActiva, setVistaActiva] = useState('citas');
   const [paciente, setPaciente] = useState(null);
   const [citas, setCitas] = useState([]);
 
   // 1. Cargar la bienvenida
-  const loadPatientWelcome = async (patientId) => {
-    console.log(`Cargando portal para paciente ${patientId}`);
+  const loadPatientWelcome = async (usuarioGlobal) => {
+    if (!usuarioGlobal) return;
+    console.log(`Cargando portal para paciente ${usuarioGlobal.id}`);
     try {
-      const res = await fetch(`http://localhost:3000/api/patients/${patientId}`);
+      const res = await fetch(`http://localhost:3000/api/patients/${usuarioGlobal.id}`);
       const data = await res.json();
       setPaciente(data);
     } catch (error) {
@@ -20,8 +23,9 @@ function PortalPaciente() {
     }
   };
 
-  // 2. Obtener próximas citas
+  // 4. Obtener próximas citas usando el ID dinámico real
   const fetchUpcomingAppointments = async (patientId) => {
+    if (!patientId) return;
     try {
       const res = await fetch(`http://localhost:3000/api/appointments/patient/${patientId}/upcoming`);
       const data = await res.json();
@@ -31,12 +35,10 @@ function PortalPaciente() {
     }
   };
 
-  // 3. Cambiar la vista principal (Patrón Strategy)
   const switchMainView = (viewType) => {
     setVistaActiva(viewType);
   };
 
-  // 4. Procesar pagos anticipados (Ventaja competitiva del negocio)
   const processNewPayment = async (appointmentId, paymentMethod) => {
     console.log(`Procesando pago con ${paymentMethod} para la cita ${appointmentId}`);
     
@@ -57,13 +59,14 @@ function PortalPaciente() {
     }
   };
 
+  // 5. El useEffect ahora reacciona inmediatamente al usuario global que provee App.js
   useEffect(() => {
-    // Al montar el componente, cargamos los datos del paciente logueado (ej. ID 101)
-    loadPatientWelcome(101);
-    fetchUpcomingAppointments(101);
-  }, []);
+    if (user) {
+      loadPatientWelcome(user);
+      fetchUpcomingAppointments(user.id);
+    }
+  }, [user]); // Al poner 'user' como dependencia, si cambia la sesión, se actualiza el portal automáticamente
 
-  // Función núcleo del Patrón Strategy: Decide qué JSX retornar
   const renderVistaActiva = () => {
     switch(vistaActiva) {
       case 'citas':
@@ -99,7 +102,6 @@ function PortalPaciente() {
         return (
             <div className="animacion-entrada">
             <h3 className="text-purple mb-4" style={{fontWeight: 'bold'}}>Mi Historial Clínico</h3>
-            {/* visor completo */}
             <VisorExpediente />
             </div>
         );
@@ -114,7 +116,10 @@ function PortalPaciente() {
         {/* Sidebar / Menú de Navegación Lateral */}
         <div className="col-md-3">
           <div className="card shadow-sm border-0 p-4 sticky-top" style={{backgroundColor: 'var(--white)', top: '100px'}}>
-            <h4 className="text-purple mb-4" style={{fontWeight: 'bold'}}>Hola, <br/>{paciente?.nombre}</h4>
+            <h4 className="text-purple mb-4" style={{fontWeight: 'bold'}}>
+              Hola, <br/>
+              {paciente ? paciente.nombre : 'Cargando...'}
+            </h4>
             
             <div className="d-flex flex-column gap-2">
               <button 

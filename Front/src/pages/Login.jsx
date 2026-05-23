@@ -1,43 +1,86 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // Importamos la herramienta de enrutamiento
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../App'; // IMPORTANTE: Importamos el contexto desde App.js
 import '../styles/style.css';
 
 function Login() {
   const [esMedico, setEsMedico] = useState(false);
-  const navigate = useNavigate(); // Inicializamos la navegación interactiva
-
-  // --- Funciones abstractas requeridas por la arquitectura técnica ---
-  const authenticateUser = async (credentials) => {
-    // Aquí se conectará la lógica del Backend/Middleware para validar las credenciales
-    console.log("Autenticando usuario en la base de datos...", credentials);
-  };
-
-  const validateSessionStatus = () => {
-    console.log("Verificando si la sesión actual sigue activa...");
-  };
+  const navigate = useNavigate(); 
   
-  const routeUserByRole = (role) => {
-    console.log("Enrutando dinámicamente a la interfaz de:", role);
-    // Enlazamos las funciones abstractas con las rutas reales del enrutador
-    if (role === "Médico") {
+  // Extraemos la función login del contexto global
+  const { login } = useAuth(); 
+
+  const [credenciales, setCredenciales] = useState({
+    email: '',
+    password: ''
+  });
+
+  const [mostrarPassword, setMostrarPassword] = useState(false);
+  const [errores, setErrores] = useState({});
+
+  const manejarCambio = (e) => {
+    const { name, value } = e.target;
+    setCredenciales({
+      ...credenciales,
+      [name]: value
+    });
+
+    if (errores[name]) {
+      setErrores({ ...errores, [name]: '' });
+    }
+  };
+
+  const validarFormulario = () => {
+    let nuevosErrores = {};
+
+    const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!regexEmail.test(credenciales.email)) {
+      nuevosErrores.email = 'Por favor, ingresa un formato de correo válido (ejemplo@correo.com).';
+    }
+
+    const regexComplejidad = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{10,}$/;
+    const tieneCaracteresRepetidos = (str) => /(.)\1\1/.test(str);
+
+    if (!credenciales.password) {
+      nuevosErrores.password = 'La contraseña es obligatoria.';
+    } else if (!regexComplejidad.test(credenciales.password)) {
+      nuevosErrores.password = 'Formato inválido. Recuerda: mín 10 caracteres, 1 mayúscula, 1 número y 1 símbolo.';
+    } else if (tieneCaracteresRepetidos(credenciales.password)) {
+      nuevosErrores.password = 'La contraseña no puede tener más de 2 caracteres idénticos consecutivos.';
+    }
+
+    setErrores(nuevosErrores);
+    return Object.keys(nuevosErrores).length === 0;
+  };
+
+  const manejarSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!validarFormulario()) {
+      return; 
+    }
+
+    // 1. Definimos el rol en formato estricto ('medico' o 'paciente') como lo espera App.js
+    const rolContexto = esMedico ? "medico" : "paciente";
+    
+    // 2. Simulamos la respuesta exitosa del Backend
+    const usuarioSimulado = {
+      id: 1,
+      nombre: esMedico ? 'Dr. Prueba' : 'Paciente Prueba',
+      email: credenciales.email,
+      rol: rolContexto,
+      especialidad: esMedico ? 'Medicina General' : undefined
+    };
+
+    // 3. ACTUALIZAMOS EL CONTEXTO GLOBAL (La llave maestra)
+    login(usuarioSimulado);
+    
+    // 4. Ahora sí, enrutamos con permiso concedido
+    if (rolContexto === "medico") {
       navigate('/dashboard-medico');
     } else {
       navigate('/portal-paciente');
     }
-  };
-
-  const handleAuthError = (error) => {
-    console.error("Error detectado en la capa de autenticación:", error);
-  };
-
-  // Manejador del envío del formulario controlado
-  const manejarSubmit = async (e) => {
-    e.preventDefault();
-    const role = esMedico ? "Médico" : "Paciente";
-    
-    // Ejecutamos el flujo completo respetando la arquitectura estructurada
-    await authenticateUser({ role: role });
-    routeUserByRole(role);
   };
 
   return (
@@ -49,19 +92,18 @@ function Login() {
           <p style={{color: 'var(--text-light)'}}>Ingresa a tu cuenta en Doctu</p>
         </div>
 
-        {/* SELECTOR DUAL (Médico vs Paciente) */}
         <div className="d-flex justify-content-center mb-4 gap-2">
           <button 
-            className={`btn ${!esMedico ? 'btn-pastel-primary' : 'btn-pastel-secondary'}`}
-            onClick={() => setEsMedico(false)}
+            className={`btn ${!esMedico ? 'btn-primary' : 'btn-outline-primary'}`}
+            onClick={() => { setEsMedico(false); setErrores({}); }}
             type="button"
             style={{flex: 1, padding: '8px'}}
           >
             Soy Paciente
           </button>
           <button 
-            className={`btn ${esMedico ? 'btn-pastel-primary' : 'btn-pastel-secondary'}`}
-            onClick={() => setEsMedico(true)}
+            className={`btn ${esMedico ? 'btn-primary' : 'btn-outline-primary'}`}
+            onClick={() => { setEsMedico(true); setErrores({}); }}
             type="button"
             style={{flex: 1, padding: '8px'}}
           >
@@ -69,20 +111,63 @@ function Login() {
           </button>
         </div>
 
-        {/* FORMULARIO */}
-        <form onSubmit={manejarSubmit}>
+        <form onSubmit={manejarSubmit} noValidate>
           <div className="mb-3">
-            <label className="form-label" style={{color: 'var(--text-light)'}}>Correo Electrónico</label>
-            <input type="email" className="form-control" required placeholder="correo@ejemplo.com" />
+            <label htmlFor="email" className="form-label" style={{color: 'var(--text-light)'}}>Correo Electrónico</label>
+            <input 
+              type="email" 
+              id="email"
+              autoComplete="email"
+              className={`form-control ${errores.email ? 'is-invalid' : ''}`}
+              name="email"
+              value={credenciales.email}
+              onChange={manejarCambio}
+              placeholder="correo@ejemplo.com" 
+            />
+            {errores.email && <div className="invalid-feedback fw-bold">⚠️ {errores.email}</div>}
           </div>
 
           <div className="mb-4">
             <label className="form-label" style={{color: 'var(--text-light)'}}>Contraseña</label>
-            <input type="password" className="form-control" required placeholder="********" />
+            
+            <div style={{ position: 'relative' }}>
+              <input 
+                type={mostrarPassword ? "text" : "password"} 
+                className={`form-control ${errores.password ? 'is-invalid' : ''}`}
+                name="password"
+                value={credenciales.password}
+                onChange={manejarCambio}
+                placeholder="********" 
+                style={{ paddingRight: '45px' }} 
+              />
+              
+              <span 
+                style={{
+                  position: 'absolute',
+                  right: '12px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  cursor: 'pointer',
+                  color: 'var(--text-light)',
+                  zIndex: 10 
+                }}
+                onMouseDown={() => setMostrarPassword(true)}
+                onMouseUp={() => setMostrarPassword(false)}
+                onMouseLeave={() => setMostrarPassword(false)}
+                onTouchStart={() => setMostrarPassword(true)}
+                onTouchEnd={() => setMostrarPassword(false)}
+              >
+                {mostrarPassword ? (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                ) : (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                )}
+              </span>
+            </div>
+            {errores.password && <div className="text-danger mt-1 fw-bold" style={{fontSize: '0.875em'}}>⚠️ {errores.password}</div>}
           </div>
 
-          {/* El botón cambia de texto dependiendo de la pestaña activa */}
-          <button type="submit" className="btn-pastel-primary w-100">
+          <button type="submit" className="btn btn-primary w-100 mt-2" style={{ backgroundColor: 'var(--purple-accent)', border: 'none' }}>
             Ingresar como {esMedico ? 'Médico' : 'Paciente'}
           </button>
         </form>
