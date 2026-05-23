@@ -10,35 +10,29 @@ function PortalPaciente() {
   const [paciente, setPaciente] = useState(null);
   const [citas, setCitas] = useState([]);
 
-  // 3. Modificamos para aceptar los datos reales del contexto o hacer el GET
+  // 1. Cargar la bienvenida
   const loadPatientWelcome = async (usuarioGlobal) => {
     if (!usuarioGlobal) return;
-
-    console.log(`Cargando portal para paciente ID: ${usuarioGlobal.id}`);
-    
-    /* ESTRATEGIA RECOMENDADA:
-       - Si viene del Registro: El contexto ya tiene su 'nombreCompleto' u 'nombre'.
-       - Si viene del Login: Aquí puedes meter tu método GET apuntando a tu base de datos si requieres más info:
-         const { data, error } = await supabase.from('pacientes').select('*').eq('id', usuarioGlobal.id).single();
-    */
-
-    setPaciente({
-      id: usuarioGlobal.id,
-      // Usamos 'nombre' o 'nombreCompleto' dependiendo de cómo mapeaste el objeto en Login/Registro
-      nombre: usuarioGlobal.nombre || usuarioGlobal.nombreCompleto || 'Paciente'
-    });
+    console.log(`Cargando portal para paciente ${usuarioGlobal.id}`);
+    try {
+      const res = await fetch(`http://localhost:3000/api/patients/${usuarioGlobal.id}`);
+      const data = await res.json();
+      setPaciente(data);
+    } catch (error) {
+      console.error("Error cargando paciente:", error);
+    }
   };
 
   // 4. Obtener próximas citas usando el ID dinámico real
   const fetchUpcomingAppointments = async (patientId) => {
     if (!patientId) return;
-    
-    console.log(`Haciendo GET de citas en Agenda_Citas para el paciente: ${patientId}`);
-    // Mock simulando conexión a la base de datos (Filtrado por el ID real del usuario)
-    setCitas([
-      { id: 1, fecha: '2026-05-20', hora: '10:00', doctor: 'Dr. Arturo (Medicina General)', estado: 'Pendiente de Pago' },
-      { id: 2, fecha: '2026-06-05', hora: '16:00', doctor: 'Dra. Elena (Odontología)', estado: 'Confirmada' }
-    ]);
+    try {
+      const res = await fetch(`http://localhost:3000/api/appointments/patient/${patientId}/upcoming`);
+      const data = await res.json();
+      setCitas(data);
+    } catch (error) {
+      console.error("Error cargando citas:", error);
+    }
   };
 
   const switchMainView = (viewType) => {
@@ -48,12 +42,21 @@ function PortalPaciente() {
   const processNewPayment = async (appointmentId, paymentMethod) => {
     console.log(`Procesando pago con ${paymentMethod} para la cita ${appointmentId}`);
     
-    setTimeout(() => {
-      setCitas(citas.map(c => 
-        c.id === appointmentId ? { ...c, estado: 'Confirmada (Pagado)' } : c
-      ));
-      alert('Pago procesado con éxito. Su cita está confirmada.');
-    }, 1000);
+    try {
+      const res = await fetch(`http://localhost:3000/api/appointments/${appointmentId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ estado: 'Confirmada (Pagado)' })
+      });
+      if (res.ok) {
+        setCitas(citas.map(c => 
+          c.id === appointmentId ? { ...c, estado: 'Confirmada (Pagado)' } : c
+        ));
+        alert('Pago procesado con éxito. Su cita está confirmada.');
+      }
+    } catch (error) {
+      console.error("Error procesando pago:", error);
+    }
   };
 
   // 5. El useEffect ahora reacciona inmediatamente al usuario global que provee App.js

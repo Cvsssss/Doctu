@@ -5,16 +5,16 @@ import ModalExportacion from '../components/ModalExportacion';
 function VisorExpediente() {
   const [timelineData, setTimelineData] = useState([]);
 
-  // 1. Obtener la línea de tiempo completa desde OLAP: Historial_Clinico_Consolidado 
+  // 1. Obtener la línea de tiempo completa
   const fetchCompleteTimeline = async (patientId) => {
     console.log(`Buscando historial para el paciente ${patientId}`);
-    // Mock de datos multidisciplinarios
-    const mockData = [
-      { id: 3, fecha: '2026-05-10', tipo: 'GENERAL', doctor: 'Dr. Arturo', diagnostico: 'Faringitis aguda', detalle: 'Presión: 120/80. Temp: 38.5°C.' },
-      { id: 2, fecha: '2026-04-15', tipo: 'ODONTOLOGIA', doctor: 'Dra. Elena', diagnostico: 'Caries dentina', detalle: 'Diente 46 obturado. Odontograma JSON actualizado.' },
-      { id: 1, fecha: '2026-01-20', tipo: 'PSICOLOGIA', doctor: 'Lic. Mariana', diagnostico: 'Ansiedad leve', detalle: 'Terapia cognitivo-conductual. Riesgo autolítico: 0.' }
-    ];
-    setTimelineData(mockData);
+    try {
+      const res = await fetch(`http://localhost:3000/api/patients/${patientId}/timeline`);
+      const data = await res.json();
+      setTimelineData(data);
+    } catch (error) {
+      console.error("Error cargando el historial:", error);
+    }
   };
 
   // 2. Simulación de desencriptación de datos [cite: 1143]

@@ -5,14 +5,15 @@ function CalendarioBuzon() {
   const [citas, setCitas] = useState([]);
   const [citaSeleccionada, setCitaSeleccionada] = useState(null);
 
-  // 1. Obtener la agenda del mes (Simula conexión a Oracle DB - Agenda_Citas)
+  // 1. Obtener la agenda del mes
   const fetchMonthlyAgenda = async (doctorId, month) => {
-    // Generamos un mock de datos
-    setCitas([
-      { id: 1, paciente: 'Juan Pérez', hora: '10:00', estado: 'Pendiente', pago: false, dia: 15 },
-      { id: 2, paciente: 'María Gómez', hora: '12:30', estado: 'Confirmada', pago: true, dia: 15 },
-      { id: 3, paciente: 'Carlos Ruiz', hora: '16:00', estado: 'Pendiente', pago: false, dia: 18 }
-    ]);
+    try {
+      const res = await fetch(`http://localhost:3000/api/appointments/doctor/${doctorId}/monthly`);
+      const data = await res.json();
+      setCitas(data);
+    } catch (error) {
+      console.error("Error cargando la agenda:", error);
+    }
   };
 
   // 2. Mediador: Abrir detalles de la cita al hacer clic en la cuadrícula
@@ -23,8 +24,19 @@ function CalendarioBuzon() {
   // 3. Actualizar estado de la cita (Cancelaciones o reprogramaciones)
   const updateAppointmentStatus = async (appointmentId, newStatus) => {
     console.log(`Actualizando cita ${appointmentId} a ${newStatus}`);
-    setCitas(citas.map(c => c.id === appointmentId ? { ...c, estado: newStatus } : c));
-    setCitaSeleccionada(prev => prev && prev.id === appointmentId ? { ...prev, estado: newStatus } : prev);
+    try {
+      const res = await fetch(`http://localhost:3000/api/appointments/${appointmentId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ estado: newStatus })
+      });
+      if (res.ok) {
+        setCitas(citas.map(c => c.id === appointmentId ? { ...c, estado: newStatus } : c));
+        setCitaSeleccionada(prev => prev && prev.id === appointmentId ? { ...prev, estado: newStatus } : prev);
+      }
+    } catch (error) {
+      console.error("Error actualizando la cita:", error);
+    }
   };
 
   // 4. Simulación de WebSockets / Server-Sent Events para pagos
