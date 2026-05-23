@@ -50,10 +50,33 @@ function LlenadoExpediente() {
     setEstadoGuardado('Enviando registro definitivo...');
     console.log('Insertando datos finales en Expediente_General:', formData);
     
-    setTimeout(() => {
-      alert('Expediente clínico cerrado y firmado con éxito bajo los lineamientos de la NOM-004.');
-      setEstadoGuardado('Expediente finalizado.');
-    }, 1000);
+    try {
+      // 101 es el ID mockeado del paciente en esta vista
+      const payload = {
+        pacienteId: 101,
+        ...formData
+      };
+
+      const res = await fetch('http://localhost:3000/api/expedientes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        alert('Expediente clínico cerrado y firmado con éxito bajo los lineamientos de la NOM-004. ID: ' + data.idExpediente);
+        setEstadoGuardado('Expediente finalizado.');
+      } else {
+        alert('Error al guardar el expediente: ' + data.error);
+        setEstadoGuardado('Error al guardar.');
+      }
+    } catch (error) {
+      console.error('Error de red:', error);
+      alert('Error de conexión con el servidor');
+      setEstadoGuardado('Error de conexión.');
+    }
   };
 
   // Cargar información del paciente al inicializar la pantalla

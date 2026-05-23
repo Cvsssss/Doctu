@@ -18,9 +18,29 @@ function RegistroPaciente() {
     });
   };
 
-  const guardarPaciente = (e) => {
+  const guardarPaciente = async (e) => {
     e.preventDefault();
     console.log("Datos a enviar al Middleware/API:", paciente);
+    
+    try {
+      const res = await fetch('http://localhost:3000/api/patients', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(paciente)
+      });
+      
+      const data = await res.json();
+      
+      if (res.ok) {
+        alert('¡Paciente creado con éxito! ID: ' + data.id);
+        // Opcional: limpiar formulario o redireccionar
+      } else {
+        alert('Error al crear paciente: ' + data.error);
+      }
+    } catch (error) {
+      console.error('Error de red:', error);
+      alert('Error de conexión con el servidor');
+    }
   };
 
   return (

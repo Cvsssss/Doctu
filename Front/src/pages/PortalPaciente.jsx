@@ -8,19 +8,27 @@ function PortalPaciente() {
   const [paciente, setPaciente] = useState(null);
   const [citas, setCitas] = useState([]);
 
-  // 1. Cargar la bienvenida (Simula base de datos)
+  // 1. Cargar la bienvenida
   const loadPatientWelcome = async (patientId) => {
     console.log(`Cargando portal para paciente ${patientId}`);
-    setPaciente({ id: patientId, nombre: 'Juan Pérez' });
+    try {
+      const res = await fetch(`http://localhost:3000/api/patients/${patientId}`);
+      const data = await res.json();
+      setPaciente(data);
+    } catch (error) {
+      console.error("Error cargando paciente:", error);
+    }
   };
 
   // 2. Obtener próximas citas
   const fetchUpcomingAppointments = async (patientId) => {
-    // Mock simulando conexión a Oracle (Agenda_Citas)
-    setCitas([
-      { id: 1, fecha: '2026-05-20', hora: '10:00', doctor: 'Dr. Arturo (Medicina General)', estado: 'Pendiente de Pago' },
-      { id: 2, fecha: '2026-06-05', hora: '16:00', doctor: 'Dra. Elena (Odontología)', estado: 'Confirmada' }
-    ]);
+    try {
+      const res = await fetch(`http://localhost:3000/api/appointments/patient/${patientId}/upcoming`);
+      const data = await res.json();
+      setCitas(data);
+    } catch (error) {
+      console.error("Error cargando citas:", error);
+    }
   };
 
   // 3. Cambiar la vista principal (Patrón Strategy)
@@ -32,13 +40,21 @@ function PortalPaciente() {
   const processNewPayment = async (appointmentId, paymentMethod) => {
     console.log(`Procesando pago con ${paymentMethod} para la cita ${appointmentId}`);
     
-    // Simular latencia de la pasarela de pago
-    setTimeout(() => {
-      setCitas(citas.map(c => 
-        c.id === appointmentId ? { ...c, estado: 'Confirmada (Pagado)' } : c
-      ));
-      alert('Pago procesado con éxito. Su cita está confirmada.');
-    }, 1000);
+    try {
+      const res = await fetch(`http://localhost:3000/api/appointments/${appointmentId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ estado: 'Confirmada (Pagado)' })
+      });
+      if (res.ok) {
+        setCitas(citas.map(c => 
+          c.id === appointmentId ? { ...c, estado: 'Confirmada (Pagado)' } : c
+        ));
+        alert('Pago procesado con éxito. Su cita está confirmada.');
+      }
+    } catch (error) {
+      console.error("Error procesando pago:", error);
+    }
   };
 
   useEffect(() => {

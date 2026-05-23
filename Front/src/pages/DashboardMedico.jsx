@@ -6,9 +6,13 @@ function DashboardMedico() {
 
   // Funciones abstractas requeridas por la arquitectura
   const fetchDailySummary = async (doctorId, date) => {
-    // Aquí irá la conexión futura a Oracle DB (Agenda_Citas y Pagos_Transacciones)
-    console.log(`Buscando resumen para el doctor ${doctorId} en la fecha ${date}`);
-    setResumenDiario({ citasPendientes: 4, mensajesNuevos: 2 });
+    try {
+      const res = await fetch(`http://localhost:3000/api/doctors/${doctorId}/summary?date=${date}`);
+      const data = await res.json();
+      setResumenDiario(data);
+    } catch (error) {
+      console.error("Error cargando el resumen diario:", error);
+    }
   };
 
   const refreshDashboardData = () => {
