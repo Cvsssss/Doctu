@@ -108,7 +108,7 @@ h4, h5, h6 { font-family: var(--font-body); font-weight: 700; }
   gap: 1.5rem;
 }
 .navbar-logo-img {
-  height: 38px;
+  height: 90px;
   width: auto;
   object-fit: contain;
 }
