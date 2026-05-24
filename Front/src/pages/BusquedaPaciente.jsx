@@ -82,7 +82,8 @@ function BusquedaPaciente() {
   };
 
   return (
-    <div className="container mt-5">
+    // Agregamos el padding top para compensar la altura de la Navbar
+    <div className="container" style={{ paddingTop: '95px', paddingBottom: '40px' }}>
       <div style={{maxWidth: '700px', margin: '0 auto'}}>
         <h2 className="text-purple mb-4" style={{ fontWeight: 'bold' }}>Búsqueda Clínica</h2>
         

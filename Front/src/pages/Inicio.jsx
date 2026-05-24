@@ -130,10 +130,10 @@ export default function Inicio() {
   <div className="container">
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16 }}>
       {[
-        { icon: <FileCheck size={32} color="white" />, valor: 'NOM-004', label: 'Cumplimiento normativo' },
-        { icon: <Target size={32} color="white" />, valor: '< 5%', label: 'Ausentismo objetivo' },
-        { icon: <Zap size={32} color="white" />, valor: '50%', label: 'Más rápido que la competencia' },
-        { icon: <ShieldCheck size={32} color="white" />, valor: '100%', label: 'Tus datos, tu control' },
+        { icon: <FileCheck size={32} color="white" />, valor: 'Cumplimiento Normativo de la NOM-004', label: '' },
+        { icon: <Target size={32} color="white" />, valor: 'Reduce el ausentismo', label: '' },
+        { icon: <Zap size={32} color="white" />, valor: 'Buscamos agilidad', label: '' },
+        { icon: <ShieldCheck size={32} color="white" />, valor: 'Tus datos, tu control', label: '' },
       ].map((s, i) => (
         <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
           {/* Contenedor del icono optimizado para vectores */}
