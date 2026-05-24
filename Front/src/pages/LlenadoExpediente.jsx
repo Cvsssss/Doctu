@@ -1,26 +1,35 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useAuth } from '../App'; // 1. Importamos el contexto de autenticación
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../App';
 import '../styles/style.css';
 
-// 2. Importamos los tres formatos especializados que tienes creados
+// Importamos los formatos especializados
 import FormatoMedicoGeneral from './FormatoMedicoGeneral';
 import FormatoPsicologia from './FormatoPsicologia';
 import FormatoOdontologia from './FormatoOdontologia';
 
 function LlenadoExpediente() {
-  const { user } = useAuth(); // 3. Extraemos el médico logueado con su especialidad
+  const { user } = useAuth();
   const [pacienteData, setPacienteData] = useState({ nombre: '', curp: '' });
   const [estadoGuardado, setEstadoGuardado] = useState('Listo para iniciar');
+  
+  // 1. NUEVO ESTADO: Aquí guardaremos el ID real del expediente extraído de la BDD
+  const [idExpedienteActivo, setIdExpedienteActivo] = useState(null);
 
   // Cargar datos base de la consulta activa
   const loadPatientBaseData = async (patientId) => {
     console.log(`Cargando datos del paciente ID: ${patientId}`);
-    // Mock de datos para el MVP
+    
+    // Mock de datos para el paciente
     setPacienteData({
       nombre: 'Juan Pérez López',
       curp: 'PELJ900101HDFRRN01'
     });
     
+    // 2. SIMULACIÓN / EXTRACCIÓN DE ID EXPEDIENTE:
+    // Para tus pruebas locales o en la nube, el ID de expediente debe existir en la tabla operaciones.expediente_general.
+    // Usaremos el ID 2 que es el que insertamos con el script de datos de prueba para Odontología.
+    setIdExpedienteActivo(2); 
+
     if (user) {
       triggerSecurityAuditLog(patientId, user.id); 
     }
@@ -31,10 +40,10 @@ function LlenadoExpediente() {
   };
 
   useEffect(() => {
-    loadPatientBaseData(101); // ID simulado para la consulta activa
+    loadPatientBaseData(101); // ID simulado de la consulta actual
   }, [user]);
 
-  // 4. FUNCIÓN ORQUESTADORA: Renderiza el formulario según la especialidad real en sesión
+  // Renderizador dinámico por especialidad
   const renderFormatoEspecializado = () => {
     if (!user || user.rol !== 'medico') {
       return (
@@ -44,19 +53,19 @@ function LlenadoExpediente() {
       );
     }
 
+    // 3. PASAR EL ID EXPEDIENTE COMO PROP A LOS COMPONENTES HIJOS
     switch (user.especialidad) {
       case 'Médico General':
       case 'Medicina General':
-        return <FormatoMedicoGeneral setEstadoGlobal={setEstadoGuardado} />;
+        return <FormatoMedicoGeneral idExpediente={idExpedienteActivo} setEstadoGlobal={setEstadoGuardado} />;
       
       case 'Psicología':
-        return <FormatoPsicologia setEstadoGlobal={setEstadoGuardado} />;
+        return <FormatoPsicologia idExpediente={idExpedienteActivo} setEstadoGlobal={setEstadoGuardado} />;
       
       case 'Odontología':
-        return <FormatoOdontologia setEstadoGlobal={setEstadoGuardado} />;
+        return <FormatoOdontologia idExpediente={idExpedienteActivo} setEstadoGlobal={setEstadoGuardado} />;
       
       default:
-        // Por si tienes un médico sin especialidad aún asignada, dejamos el formato base normativo
         return (
           <div className="alert alert-info text-center">
             Especialidad no integrada. Mostrando formato clínico general básico.
@@ -78,13 +87,14 @@ function LlenadoExpediente() {
               Paciente: <strong>{pacienteData.nombre}</strong> | CURP: <code>{pacienteData.curp}</code>
             </p>
             <p className="small text-muted mb-0 mt-1">
-              Atiende: {user?.nombre || 'Cargando profesional...'} ({user?.especialidad || 'Sin especialidad'})
+              Atiende: {user?.nombre || 'Cargando profesional...'} ({user?.especialidad || 'Sin especialidad'}) | 
+              <strong> ID Expediente: #{idExpedienteActivo || 'Ninguno'}</strong>
             </p>
           </div>
           <span className="small text-muted" style={{ fontStyle: 'italic' }}>{estadoGuardado}</span>
         </div>
 
-        {/* 5. Aquí se inyecta dinámicamente el formato del especialista */}
+        {/* Aquí se inyecta dinámicamente el formato del especialista con sus props listas */}
         {renderFormatoEspecializado()}
 
       </div>
