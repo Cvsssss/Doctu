@@ -1,0 +1,39 @@
+name: Doctu Backend CI/CD
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-audit:
+    name: Node.js Backend Audit
+    runs-on: ubuntu-latest
+    
+    # Le indicamos que busque dentro de la carpeta del backend
+    defaults:
+      run:
+        working-directory: ./Back
+        
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v4
+      
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Utilizamos la versión 20 por requerimiento de Supabase
+          cache: 'npm'
+          cache-dependency-path: ./Back/package-lock.json
+          
+      - name: Instalación de dependencias
+        # Usamos npm install para evitar problemas si el lockfile no está 100% sincronizado
+        run: npm install 
+        
+      - name: Auditoría de Seguridad
+        # Falla el pipeline solo si encuentra vulnerabilidades graves en las librerías
+        run: npm audit --audit-level=high
