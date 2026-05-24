@@ -1,0 +1,45 @@
+name: Doctu Frontend CI/CD
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    name: React Build & QA
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v4
+      
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18' # Versión estable y recomendada para react-scripts 5.x
+          cache: 'npm'
+          
+      - name: Instalación limpia de dependencias
+        run: npm ci 
+        
+      - name: Ejecutar pruebas unitarias
+        # La variable CI=true evita que el script de Jest se quede esperando input interactivo
+        run: npm run test -- --passWithNoTests
+        env:
+          CI: true
+          
+      - name: Compilación optimizada para producción
+        run: npm run build
+        env:
+          # Si usas variables de entorno para Supabase en el front, inyéctalas aquí desde los secrets
+          REACT_APP_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          REACT_APP_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          
+      - name: Subir artefacto de compilación (Opcional)
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-frontend
+          path: build/
+          retention-days: 7
