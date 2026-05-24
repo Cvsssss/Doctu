@@ -32,7 +32,7 @@ jobs:
           cache-dependency-path: ./Front/package-lock.json
           
       - name: Instalación limpia de dependencias
-        run: npm ci 
+        run: npm install 
         
       - name: Ejecutar pruebas unitarias
         run: npm run test -- --passWithNoTests
