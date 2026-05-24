@@ -17,7 +17,7 @@ jobs:
     # 1. Le decimos a todos los comandos 'run' que se ejecuten dentro de esta carpeta
     defaults:
       run:
-        working-directory: ./doctu-front
+        working-directory: ./Front
         
     steps:
       - name: Checkout del código
@@ -29,7 +29,7 @@ jobs:
           node-version: '18'
           cache: 'npm'
           # 2. Le indicamos al caché dónde encontrar el lockfile para que no se pierda
-          cache-dependency-path: ./doctu-front/package-lock.json
+          cache-dependency-path: ./Front/package-lock.json
           
       - name: Instalación limpia de dependencias
         run: npm ci 
