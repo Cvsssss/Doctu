@@ -19,7 +19,7 @@ function PortalPaciente() {
     console.log(`Cargando portal para paciente ID: ${usuarioGlobal.id}`);
     try {
       // Apunta exactamente al endpoint '/api/patients/:id' configurado en back.js
-      const res = await fetch(`http://localhost:3000/api/patients/${usuarioGlobal.id}`);
+      const res = await fetch(`http://localhost:5000/api/patients/${usuarioGlobal.id}`);
       
       if (!res.ok) {
         throw new Error('Error al obtener datos del paciente en el servidor');
@@ -42,7 +42,7 @@ function PortalPaciente() {
     try {
       // CORRECCIÓN: Se agrega '/api/appointments' antes de '/patient/.../upcoming'
       // para alinearse perfectamente con la configuración de rutas de Tris en back.js
-      const respuesta = await fetch(`http://localhost:3000/api/appointments/patient/${patientId}/upcoming`);
+      const respuesta = await fetch(`http://localhost:5000/api/appointments/patient/${patientId}/upcoming`);
       
       if (!respuesta.ok) {
         throw new Error('Error al conectar con el servidor de citas');
