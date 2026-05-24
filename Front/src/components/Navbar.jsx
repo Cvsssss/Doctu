@@ -24,15 +24,15 @@ export default function Navbar() {
   const [dropOpen, setDropOpen]   = useState(false);
   const dropRef = useRef(null);
 
-  // 1. Identificamos en qué pantallas NO queremos mostrar los menús internos
-  const rutasAuth = ['/login', '/registro'];
-  const esRutaAuth = rutasAuth.includes(location.pathname);
+  // 1. EL ARREGLO MÁGICO: Agregamos '/' para limpiar la barra en el inicio
+  const rutasLimpias = ['/', '/login', '/registro'];
+  const mostrarMenuPrivado = !rutasLimpias.includes(location.pathname);
   const isLanding = location.pathname === '/';
 
-  // 2. Solo construimos los links si NO estamos en una ruta de autenticación
-  const links = (!esRutaAuth && user?.rol === 'medico')
+  // 2. Solo construimos los links si estamos DENTRO del portal (mostrarMenuPrivado = true)
+  const links = (mostrarMenuPrivado && user?.rol === 'medico')
     ? LINKS_MEDICO
-    : (!esRutaAuth && user?.rol === 'paciente')
+    : (mostrarMenuPrivado && user?.rol === 'paciente')
       ? LINKS_PACIENTE
       : [];
 
@@ -67,8 +67,8 @@ export default function Navbar() {
     ? user.nombre.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
     : '?';
 
-  /* Navbar es transparente solo en landing sin scroll */
-  const transparent = isLanding && !scrolled && !user;
+  /* Navbar es transparente solo en landing sin scroll y sin usuario */
+const transparent = isLanding && !scrolled;
 
   return (
     <>
@@ -80,7 +80,7 @@ export default function Navbar() {
             <img src={logoDoctu} alt="Doctu" className="navbar-logo-img" />
           </Link>
 
-          {/* Links de navegación (desktop) - Ahora solo aparecen si 'links' tiene elementos */}
+          {/* Links de navegación (desktop) - Desaparecen en landing */}
           {links.length > 0 && (
             <ul className="navbar-links-list">
               {links.map(l => (
@@ -98,68 +98,72 @@ export default function Navbar() {
 
           {/* Derecha */}
           <div className="navbar-right">
-            {user ? (
-              /* Usuario logueado → pill con dropdown */
-              <div ref={dropRef} style={{ position:'relative' }}>
-                <button
-                  className="user-pill"
-                  onClick={() => setDropOpen(o => !o)}
-                >
-                  <div className="avatar-mini">{initials}</div>
-                  <span style={{ maxWidth:110, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-                    {user.nombre?.split(' ')[0]}
-                  </span>
-                  <span style={{ fontSize:'0.7rem', color:'var(--text-light)' }}>▼</span>
-                </button>
+            {mostrarMenuPrivado ? (
+              /* --- VISTA PRIVADA: Pill con Avatar y Dropdown --- */
+              user && (
+                <div ref={dropRef} style={{ position:'relative' }}>
+                  <button
+                    className="user-pill"
+                    onClick={() => setDropOpen(o => !o)}
+                  >
+                    <div className="avatar-mini">{initials}</div>
+                    <span style={{ maxWidth:110, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                      {user.nombre?.split(' ')[0]}
+                    </span>
+                    <span style={{ fontSize:'0.7rem', color:'var(--text-light)' }}>▼</span>
+                  </button>
 
-                {dropOpen && (
-                  <div className="dropdown-nav">
-                    <div className="dropdown-nav-header">
-                      <div className="dropdown-nav-name">{user.nombre}</div>
-                      <div className="dropdown-nav-role">
-                        {user.rol === 'medico'
-                          ? `🩺 Profesional · ${user.especialidad || 'Médico'}`
-                          : 'Paciente'}
+                  {dropOpen && (
+                    <div className="dropdown-nav">
+                      <div className="dropdown-nav-header">
+                        <div className="dropdown-nav-name">{user.nombre}</div>
+                        <div className="dropdown-nav-role">
+                          {user.rol === 'medico'
+                            ? `🩺 Profesional · ${user.especialidad || 'Médico'}`
+                            : 'Paciente'}
+                        </div>
                       </div>
+                      <hr style={{ margin:'4px 0', borderColor:'var(--border-color)' }} />
+                      <button className="dropdown-nav-item" onClick={handleLogout} style={{ width:'100%' }}>
+                        🚪 Cerrar sesión
+                      </button>
                     </div>
-                    <hr style={{ margin:'4px 0', borderColor:'var(--border-color)' }} />
-                    {user.rol === 'medico' && (
-                      <Link to="/dashboard-medico" className="dropdown-nav-item">
-                        🏠 Mi Dashboard
-                      </Link>
-                    )}
-                    {user.rol === 'paciente' && (
-                      <Link to="/portal-paciente" className="dropdown-nav-item">
-                        🏥 Mi Portal
-                      </Link>
-                    )}
-                    <button className="dropdown-nav-item" onClick={handleLogout} style={{ width:'100%' }}>
-                      🚪 Cerrar sesión
-                    </button>
-                  </div>
-                )}
-              </div>
+                  )}
+                </div>
+              )
             ) : (
-              /* Sin usuario → botones de auth */
-              <>
-                <Link
-                  to="/login"
-                  style={{
-                    padding:'8px 18px', borderRadius:'var(--radius-md)',
-                    fontWeight:600, fontSize:'0.9rem',
-                    color: transparent ? 'rgba(255,255,255,0.85)' : 'var(--text-light)',
-                    textDecoration:'none', transition:'var(--transition)',
-                  }}
+              /* --- VISTA PÚBLICA (Landing/Login/Registro) --- */
+              user ? (
+                /* Usuario Logueado en el Landing -> Botón "Ir a mi Portal" */
+                <Link 
+                  to={user.rol === 'medico' ? '/dashboard-medico' : '/portal-paciente'} 
+                  className="btn-pastel-primary btn-sm-custom"
+                  style={{ borderRadius: '25px', padding: '8px 20px' }}
                 >
-                  Iniciar sesión
+                  Ir a mi Portal
                 </Link>
-                <Link to="/registro" className="btn-pastel-primary btn-sm-custom">
-                  Registrarse
-                </Link>
-              </>
+              ) : (
+                /* Usuario NO Logueado -> Iniciar Sesión / Registrarse */
+                <>
+                  <Link
+                    to="/login"
+                    style={{
+                      padding:'8px 18px', borderRadius:'var(--radius-md)',
+                      fontWeight:600, fontSize:'0.9rem',
+                      color: transparent ? 'rgba(255,255,255,0.85)' : 'var(--text-light)',
+                      textDecoration:'none', transition:'var(--transition)',
+                    }}
+                  >
+                    Iniciar sesión
+                  </Link>
+                  <Link to="/registro" className="btn-pastel-primary btn-sm-custom">
+                    Registrarse
+                  </Link>
+                </>
+              )
             )}
 
-            {/* Hamburger (mobile) - Solo mostrar si hay links que mostrar */}
+            {/* Hamburger (mobile) */}
             {links.length > 0 && (
               <button
                 onClick={() => setMenuOpen(o => !o)}
@@ -180,7 +184,7 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* Mobile menu - Adaptado para no romperse si no hay links */}
+      {/* Mobile menu */}
       {menuOpen && (
         <div style={{
           position:'fixed', top:'var(--navbar-h)', left:0, right:0,
@@ -199,12 +203,6 @@ export default function Navbar() {
               {l.icon} {l.label}
             </Link>
           ))}
-          {!user && (
-            <>
-              <Link to="/login"    style={{ display:'block', padding:'12px 16px', color:'var(--text-main)', fontWeight:600, textDecoration:'none', borderRadius:'var(--radius-md)' }}>Iniciar sesión</Link>
-              <Link to="/registro" style={{ display:'block', padding:'12px 16px', color:'var(--text-main)', fontWeight:600, textDecoration:'none', borderRadius:'var(--radius-md)' }}>Registrarse</Link>
-            </>
-          )}
           {user && (
             <button onClick={handleLogout} style={{ display:'block', width:'100%', textAlign:'left', padding:'12px 16px', background:'none', border:'none', fontWeight:600, color:'var(--danger)', cursor:'pointer', borderRadius:'var(--radius-md)', fontFamily:'var(--font-body)' }}>
               🚪 Cerrar sesión

@@ -205,7 +205,25 @@ function RegistroUsuario() {
 
     } catch (error) {
       console.error("Error crítico durante el registro:", error);
-      alert(`Error en el servidor: ${error.message}`);
+      
+      const errorMsg = error.message || '';
+      let nuevosErrores = {};
+
+      // Atrapamos los errores técnicos de Postgres y los traducimos al formulario
+      if (errorMsg.includes('pacientes_pii_email_key') || errorMsg.includes('profesionales_perfiles_email_key') || errorMsg.includes('duplicate')) {
+        nuevosErrores.email = 'Este correo electrónico ya está registrado en Doctu.';
+      } 
+      if (errorMsg.includes('pacientes_pii_curp_key')) {
+        nuevosErrores.curp = 'Esta CURP ya se encuentra registrada en el sistema.';
+      }
+
+      // Si encontramos un error de duplicado, pintamos los textos rojos en el input
+      if (Object.keys(nuevosErrores).length > 0) {
+        setErrores((prev) => ({ ...prev, ...nuevosErrores }));
+      } else {
+        // Solo usamos alert para errores de conexión genéricos, sin exponer la base de datos
+        alert('No pudimos conectar con el servidor. Verifica tu conexión e intenta de nuevo.');
+      }
     } finally {
       setProcesando(false);
     }

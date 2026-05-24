@@ -8,6 +8,9 @@ function PasarelaPagos() {
   const [procesando, setProcesando] = useState(false);
   const [pagoExitoso, setPagoExitoso] = useState(false);
   
+  // Estado para capturar los errores de validación en tiempo real
+  const [errores, setErrores] = useState({});
+
   // Estado del formulario de tarjeta
   const [tarjeta, setTarjeta] = useState({
     nombre: '',
@@ -17,28 +20,101 @@ function PasarelaPagos() {
   });
 
   // Datos simulados de la consulta a pagar (vienen de la Agenda_Citas)
-  const consultaInfo = {
-    idCita: 1024,
-    doctor: 'Dr. Arturo (Medicina General)',
-    fecha: '20 de Mayo, 2026',
-    monto: 450.00
-  };
+  const [consultaInfo] = useState(() => {
+    // Genera un número aleatorio entre 300 y 1200
+    const montoAleatorio = Math.floor(Math.random() * (1200 - 300 + 1) + 300);
+    
+    return {
+      idCita: 1024,
+      doctor: 'Dr. Arturo (Medicina General)',
+      fecha: '20 de Mayo, 2026',
+      monto: montoAleatorio // Aquí está el número aleatorio
+    };
+  });
 
   const manejarCambio = (e) => {
+    const { name, value } = e.target;
+    let valorFiltrado = value;
+
+    // 1. Filtrar entrada según el campo activo
+    if (name === 'numero' || name === 'cvv') {
+      // Solo permitir dígitos numéricos
+      valorFiltrado = value.replace(/\D/g, '');
+    }
+
+    if (name === 'nombre') {
+      // Permitir solo letras y espacios
+      valorFiltrado = value.replace(/[^a-zA-ZñÑáéíóúÁÉÍÓÚ\s]/g, '');
+    }
+
+    if (name === 'expiracion') {
+      // Solo permitir números y una diagonal limpia
+      let digitos = value.replace(/\D/g, '');
+      
+      if (digitos.length > 2) {
+        valorFiltrado = `${digitos.slice(0, 2)}/${digitos.slice(2, 4)}`;
+      } else {
+        valorFiltrado = digitos;
+      }
+    }
+
+    // 2. Actualizar el estado del formulario
     setTarjeta({
       ...tarjeta,
-      [e.target.name]: e.target.value
+      [name]: valorFiltrado
     });
+
+    // Limpiar el error del campo que se está editando para mejorar la experiencia de usuario
+    if (errores[name]) {
+      setErrores({ ...errores, [name]: '' });
+    }
   };
 
-  // Función abstracta / Simulación del flujo de pago seguro P2P
+  // Validación completa antes de procesar el pago
+  const validarFormulario = () => {
+    const nuevosErrores = {};
+
+    // Validar Nombre: Expresión regular que busca al menos dos palabras de mínimo 2 caracteres cada una
+    const nombreTrimmed = tarjeta.nombre.trim();
+    const palabras = nombreTrimmed.split(/\s+/);
+    if (palabras.length < 2 || palabras.some(p => p.length < 2)) {
+      nuevosErrores.nombre = 'Ingresa nombre y apellido completo (mínimo 2 caracteres por palabra).';
+    }
+
+    // Validar Número de tarjeta: Estricto 16 dígitos
+    if (tarjeta.numero.length !== 16) {
+      nuevosErrores.numero = 'El número de tarjeta debe contener exactamente 16 dígitos.';
+    }
+
+    // Validar Expiración: Formato MM/AA y consistencia lógica
+    if (!/^\d{2}\/\d{2}$/.test(tarjeta.expiracion)) {
+      nuevosErrores.expiracion = 'El formato debe ser MM/AA.';
+    } else {
+      const [mes, anio] = tarjeta.expiracion.split('/').map(Number);
+      if (mes < 1 || mes > 12) {
+        nuevosErrores.expiracion = 'Mes inválido (debe ser entre 01 y 12).';
+      }
+    }
+
+    // Validar CVV: Estricto 3 dígitos
+    if (tarjeta.cvv.length !== 3) {
+      nuevosErrores.cvv = 'El código CVV debe ser de 3 dígitos.';
+    }
+
+    setErrores(nuevosErrores);
+    return Object.keys(nuevosErrores).length === 0;
+  };
+
   const procesarPagoCita = (e) => {
     e.preventDefault();
+
+    // Si la validación local falla, detenemos el flujo inmediatamente
+    if (!validarFormulario()) return;
+
     setProcesando(true);
     console.log(`[PAGO] Iniciando transacción a través de la pasarela: ${metodo.toUpperCase()}`);
     console.log(`[PAGO] Datos de cita vinculada ID: ${consultaInfo.idCita}, Monto: $${consultaInfo.monto} MXN`);
 
-    // Simulamos la comunicación ultrarrápida con la pasarela para evitar que la sesión expire
     setTimeout(() => {
       setProcesando(false);
       setPagoExitoso(true);
@@ -107,7 +183,7 @@ function PasarelaPagos() {
           <div className="card shadow-sm border-0 p-4" style={{ backgroundColor: 'var(--white)' }}>
             <h4 style={{ fontWeight: 'bold', marginBottom: '1.5rem' }} className="text-purple">Método de Pago Seguro</h4>
             
-            {/* Selector de Pasarela Externa (Stripe vs MercadoPago) */}
+            {/* Selector de Pasarela Externa */}
             <div className="d-flex gap-3 mb-4">
               <button 
                 type="button"
@@ -127,31 +203,70 @@ function PasarelaPagos() {
               </button>
             </div>
 
-            {/* Formulario simulado de Tarjeta */}
-            <form onSubmit={procesarPagoCita}>
+            {/* Formulario de Tarjeta */}
+            <form onSubmit={procesarPagoCita} noValidate>
               <div className="mb-3">
                 <label className="form-label small text-muted">Nombre del Tarjetahabiente</label>
-                <input type="text" className="form-control" name="nombre" required value={tarjeta.nombre} onChange={tarjetaForm => manejarCambio(tarjetaForm)} placeholder="COMO APARECE EN LA TARJETA" />
+                <input 
+                  type="text" 
+                  className={`form-control ${errores.nombre ? 'is-invalid' : ''}`} 
+                  name="nombre" 
+                  required 
+                  value={tarjeta.nombre} 
+                  onChange={manejarCambio} 
+                  placeholder="COMO APARECE EN LA TARJETA" 
+                />
+                {errores.nombre && <div className="invalid-feedback" style={{ display: 'block', color: 'var(--danger)', fontSize: '0.8rem', marginTop: '4px' }}>⚠️ {errores.nombre}</div>}
               </div>
 
               <div className="mb-3">
                 <label className="form-label small text-muted">Número de Tarjeta</label>
-                <input type="text" className="form-control" name="numero" required maxLength="16" value={tarjeta.numero} onChange={tarjetaForm => manejarCambio(tarjetaForm)} placeholder="4152 •••• •••• ••••" />
+                <input 
+                  type="text" 
+                  className={`form-control ${errores.numero ? 'is-invalid' : ''}`} 
+                  name="numero" 
+                  required 
+                  maxLength="16" 
+                  value={tarjeta.numero} 
+                  onChange={manejarChange => manejarCambio(manejarChange)} 
+                  placeholder="4152 •••• •••• ••••" 
+                />
+                {errores.numero && <div className="invalid-feedback" style={{ display: 'block', color: 'var(--danger)', fontSize: '0.8rem', marginTop: '4px' }}>⚠️ {errores.numero}</div>}
               </div>
 
               <div className="row">
-                <div className="col-md-6 mb-4">
+                <div className="col-md-6 mb-3">
                   <label className="form-label small text-muted">Expiración</label>
-                  <input type="text" className="form-control" name="expiracion" required maxLength="5" value={tarjeta.expiracion} onChange={tarjetaForm => manejarCambio(tarjetaForm)} placeholder="MM/AA" />
+                  <input 
+                    type="text" 
+                    className={`form-control ${errores.expiracion ? 'is-invalid' : ''}`} 
+                    name="expiracion" 
+                    required 
+                    maxLength="5" 
+                    value={tarjeta.expiracion} 
+                    onChange={manejarCambio} 
+                    placeholder="MM/AA" 
+                  />
+                  {errores.expiracion && <div className="invalid-feedback" style={{ display: 'block', color: 'var(--danger)', fontSize: '0.8rem', marginTop: '4px' }}>⚠️ {errores.expiracion}</div>}
                 </div>
-                <div className="col-md-6 mb-4">
+                <div className="col-md-6 mb-3">
                   <label className="form-label small text-muted">CVC / CVV</label>
-                  <input type="password" className="form-control" name="cvv" required maxLength="3" value={tarjeta.cvv} onChange={tarjetaForm => manejarCambio(tarjetaForm)} placeholder="•••" />
+                  <input 
+                    type="password" 
+                    className={`form-control ${errores.cvv ? 'is-invalid' : ''}`} 
+                    name="cvv" 
+                    required 
+                    maxLength="3" 
+                    value={tarjeta.cvv} 
+                    onChange={manejarCambio} 
+                    placeholder="•••" 
+                  />
+                  {errores.cvv && <div className="invalid-feedback" style={{ display: 'block', color: 'var(--danger)', fontSize: '0.8rem', marginTop: '4px' }}>⚠️ {errores.cvv}</div>}
                 </div>
               </div>
 
               <div className="alert alert-secondary p-2 mb-4 text-center" style={{ fontSize: '0.8rem', border: 'none', backgroundColor: '#F0EFF5', color: 'var(--text-light)' }}>
-                
+                🔒 Tus datos de pago están encriptados de extremo a extremo.
               </div>
 
               <button 
