@@ -94,7 +94,7 @@ function BusquedaPaciente() {
           <input 
             type="text" 
             className="form-control form-control-lg" 
-            placeholder="Ingrese nombre o CURP..." 
+            placeholder="Ingrese nombre" 
             value={query}
             onChange={manejarCambio}
           />
