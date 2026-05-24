@@ -24,7 +24,7 @@ function PortalPaciente() {
       doctor: 'Dr. Roberto Muelas',
       especialidad: 'Odontología',
       mensajes: [
-        { id: 1, remitente: 'medico', texto: 'Hola Alberto, ¿cómo sentiste la resina que colocamos ayer?' },
+        { id: 1, remitente: 'medico', texto: 'Hola, ¿cómo sentiste la resina que colocamos ayer?' },
         { id: 2, remitente: 'paciente', texto: 'Hola doctor, todo muy bien. Ya no hay sensibilidad al tomar agua fría.' },
         { id: 3, remitente: 'medico', texto: 'Excelente. Recuerda no morder cosas muy duras de ese lado por un par de días. Nos vemos en tu limpieza semestral.' }
       ]
@@ -88,7 +88,6 @@ function PortalPaciente() {
     const nombrePaciente = paciente ? paciente.nombre : "Paciente Doctu";
     const ventanaImpresion = window.open('', '_blank');
 
-    // Estructuración dinámica del contenido según el formato médico normado
     let seccionesEspecificasHTML = '';
 
     if (tipo === 'medicina') {
@@ -216,16 +215,65 @@ function PortalPaciente() {
     }
   };
 
+  // ─── FUNCIÓN PARA GENERAR FECHAS DINÁMICAS ───
+  const obtenerFechaFutura = (diasAdelante) => {
+    const fecha = new Date();
+    fecha.setDate(fecha.getDate() + diasAdelante);
+    return fecha.toLocaleDateString('es-MX', { 
+      day: 'numeric', 
+      month: 'long', 
+      year: 'numeric' 
+    }); 
+  };
+
+  const cargarCitasSimuladas = () => {
+    setCitas([
+      {
+        id: 901,
+        doctor: 'Dr. Roberto Muelas',
+        especialidad: 'Odontología',
+        fecha: obtenerFechaFutura(2), 
+        hora: '10:00',
+        estado: 'Confirmada'
+      },
+      {
+        id: 902,
+        doctor: 'Dra. Laura Mente',
+        especialidad: 'Psicología',
+        fecha: obtenerFechaFutura(5), 
+        hora: '16:30',
+        estado: 'Pendiente de Pago'
+      },
+      {
+        id: 903,
+        doctor: 'Dr. Carlos Cuerpo',
+        especialidad: 'Medicina General',
+        fecha: obtenerFechaFutura(14), 
+        hora: '11:15',
+        estado: 'Confirmada'
+      }
+    ]);
+  };
+
+  // ─── FUNCIÓN DE CITAS CON RESPALDO DINÁMICO ───
   const fetchUpcomingAppointments = async (patientId) => {
     if (!patientId) return;
     try {
       const respuesta = await fetch(`http://localhost:5000/api/appointments/patient/${patientId}/upcoming`);
+      
       if (respuesta.ok) {
         const datosReales = await respuesta.json();
-        setCitas(datosReales);
+        if (datosReales && datosReales.length > 0) {
+          setCitas(datosReales);
+        } else {
+          cargarCitasSimuladas();
+        }
+      } else {
+        cargarCitasSimuladas();
       }
     } catch (error) {
-      console.error("Hubo un problema trayendo las citas:", error);
+      console.warn("Servidor inactivo o sin datos. Cargando simulación dinámica de citas.");
+      cargarCitasSimuladas();
     }
   };
 
@@ -406,7 +454,6 @@ function PortalPaciente() {
                   <p className="text-muted small mb-1">Última actualización de expediente</p>
                   <h5 className="fw-bold text-main m-0">{expedientesSimulados[expedienteTab].fecha}</h5>
                 </div>
-                {/* CONEXIÓN DEL BOTÓN COMPONENTE CON LA FUNCIÓN PDF NATIVA */}
                 <button 
                   type="button" 
                   className="btn btn-sm btn-outline-secondary d-flex align-items-center gap-2 h-50"
