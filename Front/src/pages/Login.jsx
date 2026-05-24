@@ -194,7 +194,7 @@ function Login() {
                 )}
               </span>
             </div>
-            {errores.password && <div className="text-danger mt-1 fw-bold" style={{fontSize: '0.875em'}}>⚠️ {errores.password}</div>}
+            {errores.password && <div className="text-danger mt-1 fw-bold" style={{fontSize: '0.875em'}}> {errores.password}</div>}
           </div>
 
           <button type="submit" className="btn btn-primary w-100 mt-2" style={{ backgroundColor: 'var(--purple-accent)', border: 'none' }}>

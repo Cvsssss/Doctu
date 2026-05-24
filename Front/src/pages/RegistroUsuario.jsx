@@ -268,7 +268,7 @@ function RegistroUsuario() {
               onChange={manejarCambio} 
               disabled={procesando}
             />
-            {errores.nombreCompleto && <div className="invalid-feedback fw-bold">⚠️ {errores.nombreCompleto}</div>}
+            {errores.nombreCompleto && <div className="invalid-feedback fw-bold"> {errores.nombreCompleto}</div>}
           </div>
 
           <div className="mb-3">
@@ -283,7 +283,7 @@ function RegistroUsuario() {
               style={{ textTransform: 'uppercase' }}
               disabled={procesando}
             />
-            {errores.curp && <div className="invalid-feedback fw-bold">⚠️ {errores.curp}</div>}
+            {errores.curp && <div className="invalid-feedback fw-bold"> {errores.curp}</div>}
           </div>
 
           {tipoUsuario === 'medico' && (
@@ -298,7 +298,7 @@ function RegistroUsuario() {
                 maxLength="8"
                 disabled={procesando}
               />
-              {errores.cedula && <div className="invalid-feedback fw-bold">⚠️ {errores.cedula}</div>}
+              {errores.cedula && <div className="invalid-feedback fw-bold"> {errores.cedula}</div>}
             </div>
           )}
 
@@ -312,7 +312,7 @@ function RegistroUsuario() {
               onChange={manejarCambio} 
               disabled={procesando}
             />
-            {errores.email && <div className="invalid-feedback fw-bold">⚠️ {errores.email}</div>}
+            {errores.email && <div className="invalid-feedback fw-bold"> {errores.email}</div>}
           </div>
 
           <div className="mb-3">
@@ -326,7 +326,7 @@ function RegistroUsuario() {
               maxLength="10"
               disabled={procesando}
             />
-            {errores.telefono && <div className="invalid-feedback fw-bold">⚠️ {errores.telefono}</div>}
+            {errores.telefono && <div className="invalid-feedback fw-bold"> {errores.telefono}</div>}
           </div>
 
           <div className="row mb-4">
@@ -340,7 +340,7 @@ function RegistroUsuario() {
                 onChange={manejarCambio} 
                 disabled={procesando}
               />
-              {errores.password && <div className="invalid-feedback fw-bold">⚠️ {errores.password}</div>}
+              {errores.password && <div className="invalid-feedback fw-bold"> {errores.password}</div>}
             </div>
             
             <div className="col-md-6">
@@ -353,7 +353,7 @@ function RegistroUsuario() {
                 onChange={manejarCambio} 
                 disabled={procesando}
               />
-              {errores.confirmarPassword && <div className="invalid-feedback fw-bold">⚠️ {errores.confirmarPassword}</div>}
+              {errores.confirmarPassword && <div className="invalid-feedback fw-bold"> {errores.confirmarPassword}</div>}
             </div>
           </div>
 

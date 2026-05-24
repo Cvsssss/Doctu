@@ -4,7 +4,7 @@ import '../styles/style.css';
 function FormatoPsicologia() {
   const [activeTab, setActiveTab] = useState('motivo');
   
-  // Estado mapeado a la tabla Formato_Psicologia en Oracle [cite: 640-672]
+  // Estado mapeado a la tabla Formato_Psicologia [cite: 640-672]
   const [formData, setFormData] = useState({
     // Ficha y Motivo [cite: 643-651]
     estadoCivil: '',

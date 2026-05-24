@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Bell, FileText, Pill, Lock } from 'lucide-react';
+import { FileCheck, Target, Zap, ShieldCheck } from 'lucide-react';
+import '../styles/style.css';
 
 // ── ICONOS PROFESIONALES (SVGs Minimalistas) ──
 const getIcon = (id) => {
@@ -75,7 +78,7 @@ export default function Inicio() {
         <div className="hero-content-wrapper">
           <div className="hero-text-area animacion-entrada">
             <div style={{ display:'inline-flex', alignItems:'center', gap:8, background:'rgba(255,255,255,0.12)', backdropFilter:'blur(8px)', border:'1px solid rgba(255,255,255,0.2)', borderRadius:'var(--radius-pill)', padding:'7px 16px', fontSize:'0.82rem', fontWeight:700, color:'rgba(255,255,255,0.9)', letterSpacing:'0.04em', marginBottom:'1.4rem' }}>
-              🌸 Infraestructura digital del sector salud
+              Infraestructura digital del sector salud
             </div>
 
             <h1 className="hero-title">
@@ -90,7 +93,7 @@ export default function Inicio() {
 
             <div className="hero-actions">
               <Link to="/login?rol=paciente" className="btn-hero-white">
-                🤝 Soy paciente — Comenzar
+                Soy paciente
               </Link>
               <Link to="/login?rol=medico" className="btn-hero-outline" onClick={navigateToLogin}>
                 🩺 Soy profesional de salud
@@ -123,26 +126,34 @@ export default function Inicio() {
       </section>
 
       {/* ── STATS BAR ── */}
-      <section style={{ background:'var(--purple-dark)', padding:'28px 0' }}>
-        <div className="container">
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:16 }}>
-            {[
-              { icon:'📋', valor:'NOM-004', label:'Cumplimiento normativo' },
-              { icon:'🎯', valor:'< 5%',    label:'Ausentismo objetivo' },
-              { icon:'⚡', valor:'50%',     label:'Más rápido que la competencia' },
-              { icon:'🔐', valor:'100%',    label:'Tus datos, tu control' },
-            ].map((s,i) => (
-              <div key={i} style={{ display:'flex', alignItems:'center', gap:14 }}>
-                <span style={{ fontSize:'1.8rem' }}>{s.icon}</span>
-                <div>
-                  <div style={{ fontFamily:'var(--font-display)', fontSize:'1.5rem', fontWeight:700, color:'white', lineHeight:1 }}>{s.valor}</div>
-                  <div style={{ fontSize:'0.78rem', color:'var(--purple-mid)', marginTop:3 }}>{s.label}</div>
-                </div>
-              </div>
-            ))}
+      <section style={{ background: 'var(--purple-dark)', padding: '28px 0' }}>
+  <div className="container">
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16 }}>
+      {[
+        { icon: <FileCheck size={32} color="white" />, valor: 'NOM-004', label: 'Cumplimiento normativo' },
+        { icon: <Target size={32} color="white" />, valor: '< 5%', label: 'Ausentismo objetivo' },
+        { icon: <Zap size={32} color="white" />, valor: '50%', label: 'Más rápido que la competencia' },
+        { icon: <ShieldCheck size={32} color="white" />, valor: '100%', label: 'Tus datos, tu control' },
+      ].map((s, i) => (
+        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          {/* Contenedor del icono optimizado para vectores */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            {s.icon}
+          </div>
+          <div>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', fontWeight: 700, color: 'white', lineHeight: 1 }}>
+              {s.valor}
+            </div>
+            <div style={{ fontSize: '0.78rem', color: 'var(--purple-mid)', marginTop: 3 }}>
+              {s.label}
+            </div>
           </div>
         </div>
-      </section>
+      ))}
+    </div>
+  </div>
+</section>
+
 
       {/* ── SERVICIOS DETALLADOS ── */}
       <section className="section-public" id="servicios">
@@ -210,33 +221,39 @@ export default function Inicio() {
             </div>
             
             {/* ── COMPONENTE GRÁFICO DE SEGURIDAD ── */}
-            <div className="col-md-6 reveal-on-scroll" style={{ animationDelay:'0.15s' }}>
-              <div style={{ background:'var(--purple-dark)', borderRadius:'var(--radius-xl)', overflow:'hidden', boxShadow:'var(--card-shadow-lg)' }}>
-                <div style={{ padding:'14px 18px', background:'rgba(255,255,255,0.06)', borderBottom:'1px solid rgba(255,255,255,0.08)', display:'flex', alignItems:'center', gap:10 }}>
-                  <span style={{ width:8,height:8,background:'var(--success)',borderRadius:'50%',boxShadow:'0 0 8px var(--success)',animation:'pulse 2s infinite',display:'inline-block' }} />
-                  <span style={{ fontSize:'0.82rem', fontWeight:600, color:'var(--success)' }}>Monitoreo activo</span>
-                </div>
-                <div style={{ padding:'18px', display:'flex', flexDirection:'column', gap:12 }}>
-                  {[
-                    { icon:'🔔', titulo:'Acceso a expediente detectado', sub:'Dr. García accedió a tus datos de contacto', tiempo:'Hace 2 min' },
-                    { icon:'📋', titulo:'Expediente actualizado', sub:'Dra. Martínez añadió notas de sesión', tiempo:'Ayer 11:20' },
-                    { icon:'💊', titulo:'Nueva receta emitida', sub:'Consulta 14 mayo · Medicina General', tiempo:'14 mayo' },
-                  ].map((n,i) => (
-                    <div key={i} style={{ display:'flex', gap:12, alignItems:'flex-start', padding:'14px', background:'rgba(255,255,255,0.06)', borderRadius:'var(--radius-md)', border:'1px solid rgba(255,255,255,0.08)' }}>
-                      <span style={{ fontSize:'1.1rem', width:34,height:34, background:'rgba(255,255,255,0.08)', borderRadius:'var(--radius-sm)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>{n.icon}</span>
-                      <div>
-                        <p style={{ fontSize:'0.85rem', fontWeight:600, color:'white', margin:'0 0 2px' }}>{n.titulo}</p>
-                        <p style={{ fontSize:'0.78rem', color:'rgba(255,255,255,0.55)', margin:'0 0 3px' }}>{n.sub}</p>
-                        <p style={{ fontSize:'0.72rem', color:'rgba(255,255,255,0.3)', margin:0 }}>{n.tiempo}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div style={{ padding:'12px 18px', textAlign:'center', fontSize:'0.78rem', color:'rgba(255,255,255,0.35)', borderTop:'1px solid rgba(255,255,255,0.07)' }}>
-                  🔒 Tus datos protegidos en tiempo real
-                </div>
-              </div>
-            </div>
+            <div className="col-md-6 reveal-on-scroll" style={{ animationDelay: '0.15s' }}>
+  <div style={{ background: 'var(--purple-dark)', borderRadius: 'var(--radius-xl)', overflow: 'hidden', boxShadow: 'var(--card-shadow-lg)' }}>
+    <div style={{ padding: '14px 18px', background: 'rgba(255,255,255,0.06)', borderBottom: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', gap: 10 }}>
+      <span style={{ width: 8, height: 8, background: 'var(--success)', borderRadius: '50%', boxShadow: '0 0 8px var(--success)', animation: 'pulse 2s infinite', display: 'inline-block' }} />
+      <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--success)' }}>Monitoreo activo</span>
+    </div>
+    <div style={{ padding: '18px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+      {[
+        { icon: <Bell size={18} color="rgba(255,255,255,0.85)" />, titulo: 'Acceso a expediente detectado', sub: 'Dr. García accedió a tus datos de contacto', tiempo: 'Hace 2 min' },
+        { icon: <FileText size={18} color="rgba(255,255,255,0.85)" />, titulo: 'Expediente actualizado', sub: 'Dra. Martínez añadió notas de sesión', tiempo: 'Ayer 11:20' },
+        { icon: <Pill size={18} color="rgba(255,255,255,0.85)" />, titulo: 'Nueva receta emitida', sub: 'Consulta 14 mayo · Medicina General', tiempo: '14 mayo' },
+      ].map((n, i) => (
+        <div key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', padding: '14px', background: 'rgba(255,255,255,0.06)', borderRadius: 'var(--radius-md)', border: '1px solid rgba(255,255,255,0.08)' }}>
+          {/* El contenedor ahora aloja el componente de Lucide */}
+          <span style={{ width: 34, height: 34, background: 'rgba(255,255,255,0.08)', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            {n.icon}
+          </span>
+          <div>
+            <p style={{ fontSize: '0.85rem', fontWeight: 600, color: 'white', margin: '0 0 2px' }}>{n.titulo}</p>
+            <p style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)', margin: '0 0 3px' }}>{n.sub}</p>
+            <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.3)', margin: 0 }}>{n.tiempo}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+    {/* Se reemplazó el candado de texto por el componente Lock */}
+    <div style={{ padding: '12px 18px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '0.78rem', color: 'rgba(255,255,255,0.35)', borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+      <Lock size={12} color="rgba(255,255,255,0.35)" />
+      <span>Tus datos protegidos en tiempo real</span>
+    </div>
+  </div>
+</div>
+
           </div>
         </div>
 
@@ -266,7 +283,7 @@ export default function Inicio() {
       {/* ── CTA FINAL ── */}
       <section className="cta-section">
         <div className="container text-center reveal-on-scroll">
-          <div style={{ fontSize:'2.8rem', marginBottom:16 }}>🌸</div>
+          <div style={{ fontSize:'2.8rem', marginBottom:16 }}></div>
           <h2>Tu salud, tu expediente, tu control.</h2>
           <p>Únete a Doctu hoy. Es gratis para pacientes.</p>
           <div style={{ display:'flex', gap:14, justifyContent:'center', flexWrap:'wrap' }}>

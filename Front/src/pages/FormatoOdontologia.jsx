@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { supabase } from '../config/supabaseClient';
 import '../styles/style.css';
+import { CheckCircle, AlertCircle, Shield, MinusCircle, Activity } from 'lucide-react';
+
 
 // --- COMPONENTE INTERNO: Odontograma Clínico Interactivo (FDI) ---
 const OdontogramaInteractivo = ({ jsonState, setJsonState }) => {
@@ -11,12 +13,12 @@ const OdontogramaInteractivo = ({ jsonState, setJsonState }) => {
   const cuadrante3 = [31, 32, 33, 34, 35, 36, 37, 38]; // Inferior Izquierdo
 
   const estadosPosibles = [
-    { clave: 'Sano', color: '#4CAF50', icono: '🦷' },
-    { clave: 'Caries', color: '#F44336', icono: '🔴' },
-    { clave: 'Corona', color: '#FF9800', icono: '👑' },
-    { clave: 'Ausente', color: '#9E9E9E', icono: '❌' },
-    { clave: 'Tratamiento de Conducto', color: '#9C27B0', icono: '⚡' }
-  ];
+  { clave: 'Sano', color: '#4CAF50', icono: <CheckCircle size={16} color="#4CAF50" /> },
+  { clave: 'Caries', color: '#F44336', icono: <AlertCircle size={16} color="#F44336" /> },
+  { clave: 'Corona', color: '#FF9800', icono: <Shield size={16} color="#FF9800" /> },
+  { clave: 'Ausente', color: '#9E9E9E', icono: <MinusCircle size={16} color="#9E9E9E" /> },
+  { clave: 'Tratamiento de Conducto', color: '#9C27B0', icono: <Activity size={16} color="#9C27B0" /> }
+];
 
   const [dienteSeleccionado, setDienteSeleccionado] = useState(null);
 
@@ -27,34 +29,38 @@ const OdontogramaInteractivo = ({ jsonState, setJsonState }) => {
   };
 
   const renderFilaDientes = (dientes) => (
-    <div className="d-flex justify-content-center gap-2 my-2 flex-wrap">
-      {dientes.map((d) => {
-        const estadoActual = jsonState[`diente_${d}`] || 'Sano';
-        const configEstado = estadosPosibles.find(e => e.clave === estadoActual) || estadosPosibles[0];
-        
-        return (
-          <div 
-            key={d} 
-            className="text-center p-2 rounded border"
-            style={{ 
-              cursor: 'pointer', 
-              backgroundColor: dienteSeleccionado === d ? '#E3F2FD' : '#MismoFondo',
-              borderColor: dienteSeleccionado === d ? '#1565C0' : '#E0E0E0',
-              minWidth: '55px',
-              transition: 'all 0.2s'
-            }}
-            onClick={() => setDienteSeleccionado(d)}
-          >
-            <div style={{ fontSize: '1.2rem' }}>{configEstado.icono}</div>
-            <div className="fw-bold small" style={{ color: '#1565C0' }}>{d}</div>
-            <div className="badge mt-1" style={{ backgroundColor: configEstado.color, fontSize: '0.65rem', display: 'block' }}>
-              {configEstado.clave}
-            </div>
+  <div className="d-flex justify-content-center gap-2 my-2 flex-wrap">
+    {dientes.map((d) => {
+      const estadoActual = jsonState[`diente_${d}`] || 'Sano';
+      const configEstado = estadosPosibles.find(e => e.clave === estadoActual) || estadosPosibles[0];
+      
+      return (
+        <div 
+          key={d} 
+          className="text-center p-2 rounded border"
+          style={{ 
+            cursor: 'pointer', 
+            // Corregido '#MismoFondo' por 'transparent' o el color por defecto que prefieras
+            backgroundColor: dienteSeleccionado === d ? '#E3F2FD' : 'transparent',
+            borderColor: dienteSeleccionado === d ? '#1565C0' : '#E0E0E0',
+            minWidth: '65px', // Subí ligeramente a 65px para que los textos de los badges no se corten
+            transition: 'all 0.2s'
+          }}
+          onClick={() => setDienteSeleccionado(d)}
+        >
+          {/* Quitamos el fontSize: '1.2rem' ya que el tamaño del icono de Lucide se controla con su propiedad 'size' */}
+          <div className="d-flex justify-content-center align-items-center mb-1">
+            {configEstado.icono}
           </div>
-        );
-      })}
-    </div>
-  );
+          <div className="fw-bold small" style={{ color: '#1565C0' }}>{d}</div>
+          <div className="badge mt-1" style={{ backgroundColor: configEstado.color, fontSize: '0.65rem', display: 'block' }}>
+            {configEstado.clave}
+          </div>
+        </div>
+      );
+    })}
+  </div>
+);
 
   return (
     <div className="card p-3 border-0 bg-light mb-4">
@@ -444,7 +450,7 @@ function FormatoOdontologia({ idExpediente, setEstadoGlobal }) {
                 disabled={guardando}
                 style={{ backgroundColor: '#1565C0', color: 'white', fontWeight: 'bold' }}
               >
-                {guardando ? 'Sincronizando con Supabase...' : '🏷️ Guardar Expediente Odontológico'}
+                {guardando ? 'Sincronizando...' : 'Guardar Expediente Odontológico'}
               </button>
             </div>
           </div>

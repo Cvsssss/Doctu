@@ -3,16 +3,19 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../App';
 import logoDoctu from '../assets/Logo.png';
 
+import { Home, Search, FileText, Calendar, LayoutDashboard, CreditCard } from 'lucide-react';
+import { ChevronDown, LogOut, Menu, X } from 'lucide-react';
+
 /* ─── Links por rol ─── */
 const LINKS_MEDICO = [
-  { to: '/dashboard-medico',    label: 'Inicio',       icon: '🏠' },
-  { to: '/buscar-paciente',     label: 'Pacientes',    icon: '🔍' },
-  { to: '/llenado-expediente',  label: 'Expedientes',  icon: '📋' },
-  { to: '/calendario',          label: 'Calendario',   icon: '📅' },
+  { to: '/dashboard-medico',    label: 'Inicio',       icon: <Home size={18} /> },
+  { to: '/buscar-paciente',     label: 'Pacientes',    icon: <Search size={18} /> },
+  { to: '/llenado-expediente',  label: 'Expedientes',  icon: <FileText size={18} /> },
+  { to: '/calendario',          label: 'Calendario',   icon: <Calendar size={18} /> },
 ];
 const LINKS_PACIENTE = [
-  { to: '/portal-paciente', label: 'Mi Portal',  icon: '🏥' },
-  { to: '/pasarela-pago',   label: 'Mis Pagos',  icon: '💳' },
+  { to: '/portal-paciente', label: 'Mi Portal',  icon: <LayoutDashboard size={18} /> },
+  { to: '/pasarela-pago',   label: 'Mis Pagos',  icon: <CreditCard size={18} /> },
 ];
 
 export default function Navbar() {
@@ -98,89 +101,96 @@ const transparent = isLanding && !scrolled;
 
           {/* Derecha */}
           <div className="navbar-right">
-            {mostrarMenuPrivado ? (
-              /* --- VISTA PRIVADA: Pill con Avatar y Dropdown --- */
-              user && (
-                <div ref={dropRef} style={{ position:'relative' }}>
-                  <button
-                    className="user-pill"
-                    onClick={() => setDropOpen(o => !o)}
-                  >
-                    <div className="avatar-mini">{initials}</div>
-                    <span style={{ maxWidth:110, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-                      {user.nombre?.split(' ')[0]}
-                    </span>
-                    <span style={{ fontSize:'0.7rem', color:'var(--text-light)' }}>▼</span>
-                  </button>
+  {mostrarMenuPrivado ? (
+    /* --- VISTA PRIVADA: Pill con Avatar y Dropdown --- */
+    user && (
+      <div ref={dropRef} style={{ position: 'relative' }}>
+        <button
+          className="user-pill"
+          onClick={() => setDropOpen(o => !o)}
+          style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+        >
+          <div className="avatar-mini">{initials}</div>
+          <span style={{ maxWidth: 110, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {user.nombre?.split(' ')[0]}
+          </span>
+          <ChevronDown size={14} style={{ color: 'var(--text-light)', transition: 'transform 0.2s', transform: dropOpen ? 'rotate(180deg)' : 'none' }} />
+        </button>
 
-                  {dropOpen && (
-                    <div className="dropdown-nav">
-                      <div className="dropdown-nav-header">
-                        <div className="dropdown-nav-name">{user.nombre}</div>
-                        <div className="dropdown-nav-role">
-                          {user.rol === 'medico'
-                            ? `🩺 Profesional · ${user.especialidad || 'Médico'}`
-                            : 'Paciente'}
-                        </div>
-                      </div>
-                      <hr style={{ margin:'4px 0', borderColor:'var(--border-color)' }} />
-                      <button className="dropdown-nav-item" onClick={handleLogout} style={{ width:'100%' }}>
-                        🚪 Cerrar sesión
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )
-            ) : (
-              /* --- VISTA PÚBLICA (Landing/Login/Registro) --- */
-              user ? (
-                /* Usuario Logueado en el Landing -> Botón "Ir a mi Portal" */
-                <Link 
-                  to={user.rol === 'medico' ? '/dashboard-medico' : '/portal-paciente'} 
-                  className="btn-pastel-primary btn-sm-custom"
-                  style={{ borderRadius: '25px', padding: '8px 20px' }}
-                >
-                  Ir a mi Portal
-                </Link>
-              ) : (
-                /* Usuario NO Logueado -> Iniciar Sesión / Registrarse */
-                <>
-                  <Link
-                    to="/login"
-                    style={{
-                      padding:'8px 18px', borderRadius:'var(--radius-md)',
-                      fontWeight:600, fontSize:'0.9rem',
-                      color: transparent ? 'rgba(255,255,255,0.85)' : 'var(--text-light)',
-                      textDecoration:'none', transition:'var(--transition)',
-                    }}
-                  >
-                    Iniciar sesión
-                  </Link>
-                  <Link to="/registro" className="btn-pastel-primary btn-sm-custom">
-                    Registrarse
-                  </Link>
-                </>
-              )
-            )}
-
-            {/* Hamburger (mobile) */}
-            {links.length > 0 && (
-              <button
-                onClick={() => setMenuOpen(o => !o)}
-                aria-label="Menú"
-                style={{
-                  display:'none',
-                  flexDirection:'column', gap:5, padding:6,
-                  background:'none', border:'none', cursor:'pointer',
-                }}
-                className="hamburger-btn"
-              >
-                <span style={{ display:'block', width:22, height:2, background: transparent ? 'white' : 'var(--text-main)', borderRadius:2, transition:'all 0.22s', transform: menuOpen ? 'translateY(7px) rotate(45deg)' : 'none' }} />
-                <span style={{ display:'block', width:22, height:2, background: transparent ? 'white' : 'var(--text-main)', borderRadius:2, transition:'all 0.22s', opacity: menuOpen ? 0 : 1 }} />
-                <span style={{ display:'block', width:22, height:2, background: transparent ? 'white' : 'var(--text-main)', borderRadius:2, transition:'all 0.22s', transform: menuOpen ? 'translateY(-7px) rotate(-45deg)' : 'none' }} />
-              </button>
-            )}
+        {dropOpen && (
+          <div className="dropdown-nav">
+            <div className="dropdown-nav-header">
+              <div className="dropdown-nav-name">{user.nombre}</div>
+              <div className="dropdown-nav-role" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                {user.rol === 'medico'
+                  ? `🩺 Profesional · ${user.especialidad || 'Médico'}`
+                  : 'Paciente'}
+              </div>
+            </div>
+            <hr style={{ margin: '4px 0', borderColor: 'var(--border-color)' }} />
+            <button 
+              className="dropdown-nav-item" 
+              onClick={handleLogout} 
+              style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center' }}
+            >
+              <LogOut size={16} />
+              Cerrar sesión
+            </button>
           </div>
+        )}
+      </div>
+    )
+  ) : (
+    /* --- VISTA PÚBLICA (Landing/Login/Registro) --- */
+    user ? (
+      /* Usuario Logueado en el Landing -> Botón "Ir a mi Portal" */
+      <Link 
+        to={user.rol === 'medico' ? '/dashboard-medico' : '/portal-paciente'} 
+        className="btn-pastel-primary btn-sm-custom"
+        style={{ borderRadius: '25px', padding: '8px 20px' }}
+      >
+        Ir a mi Portal
+      </Link>
+    ) : (
+      /* Usuario NO Logueado -> Iniciar Sesión / Registrarse */
+      <>
+        <Link
+          to="/login"
+          style={{
+            padding: '8px 18px', borderRadius: 'var(--radius-md)',
+            fontWeight: 600, fontSize: '0.9rem',
+            color: transparent ? 'rgba(255,255,255,0.85)' : 'var(--text-light)',
+            textDecoration: 'none', transition: 'var(--transition)',
+          }}
+        >
+          Iniciar sesión
+        </Link>
+        <Link to="/registro" className="btn-pastel-primary btn-sm-custom">
+          Registrarse
+        </Link>
+      </>
+    )
+  )}
+
+  {/* Hamburger (mobile) */}
+  {links.length > 0 && (
+    <button
+      onClick={() => setMenuOpen(o => !o)}
+      aria-label="Menú"
+      style={{
+        display: 'none',
+        padding: 6,
+        background: 'none',
+        border: 'none',
+        cursor: 'pointer',
+        color: transparent ? 'white' : 'var(--text-main)'
+      }}
+      className="hamburger-btn"
+    >
+      {menuOpen ? <X size={24} /> : <Menu size={24} />}
+    </button>
+  )}
+</div>
         </div>
       </nav>
 

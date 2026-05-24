@@ -48,7 +48,7 @@ function LlenadoExpediente() {
     if (!user || user.rol !== 'medico') {
       return (
         <div className="alert alert-warning text-center">
-          ⚠️ No tienes permisos de profesional de la salud para editar expedientes.
+          No tienes permisos de profesional de la salud para editar expedientes.
         </div>
       );
     }

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/style.css';
+import { CreditCard, Handshake } from 'lucide-react';
+
 
 function PasarelaPagos() {
   const navigate = useNavigate();
@@ -185,23 +187,35 @@ function PasarelaPagos() {
             
             {/* Selector de Pasarela Externa */}
             <div className="d-flex gap-3 mb-4">
-              <button 
-                type="button"
-                className={`btn flex-fill p-3 border ${metodo === 'stripe' ? 'border-primary' : ''}`}
-                style={{ backgroundColor: metodo === 'stripe' ? '#F4F7FF' : 'var(--white)', borderRadius: '8px', fontWeight: '600' }}
-                onClick={() => setMetodo('stripe')}
-              >
-                💳 Stripe
-              </button>
-              <button 
-                type="button"
-                className={`btn flex-fill p-3 border ${metodo === 'mercadopago' ? 'border-primary' : ''}`}
-                style={{ backgroundColor: metodo === 'mercadopago' ? '#EBF5FF' : 'var(--white)', borderRadius: '8px', fontWeight: '600' }}
-                onClick={() => setMetodo('mercadopago')}
-              >
-                🤝 MercadoPago
-              </button>
-            </div>
+  <button 
+    type="button"
+    className={`btn flex-fill p-3 border d-flex align-items-center justify-content-center gap-2 ${metodo === 'stripe' ? 'border-primary' : ''}`}
+    style={{ 
+      backgroundColor: metodo === 'stripe' ? '#F4F7FF' : 'var(--white)', 
+      borderRadius: '8px', 
+      fontWeight: '600' 
+    }}
+    onClick={() => setMetodo('stripe')}
+  >
+    <CreditCard size={18} color={metodo === 'stripe' ? 'var(--bs-primary)' : 'currentColor'} />
+    <span>Stripe</span>
+  </button>
+  
+  <button 
+    type="button"
+    className={`btn flex-fill p-3 border d-flex align-items-center justify-content-center gap-2 ${metodo === 'mercadopago' ? 'border-primary' : ''}`}
+    style={{ 
+      backgroundColor: metodo === 'mercadopago' ? '#EBF5FF' : 'var(--white)', 
+      borderRadius: '8px', 
+      fontWeight: '600' 
+    }}
+    onClick={() => setMetodo('mercadopago')}
+  >
+    <Handshake size={18} color={metodo === 'mercadopago' ? 'var(--bs-primary)' : 'currentColor'} />
+    <span>MercadoPago</span>
+  </button>
+</div>
+
 
             {/* Formulario de Tarjeta */}
             <form onSubmit={procesarPagoCita} noValidate>
@@ -216,7 +230,7 @@ function PasarelaPagos() {
                   onChange={manejarCambio} 
                   placeholder="COMO APARECE EN LA TARJETA" 
                 />
-                {errores.nombre && <div className="invalid-feedback" style={{ display: 'block', color: 'var(--danger)', fontSize: '0.8rem', marginTop: '4px' }}>⚠️ {errores.nombre}</div>}
+                {errores.nombre && <div className="invalid-feedback" style={{ display: 'block', color: 'var(--danger)', fontSize: '0.8rem', marginTop: '4px' }}> {errores.nombre}</div>}
               </div>
 
               <div className="mb-3">
@@ -231,7 +245,7 @@ function PasarelaPagos() {
                   onChange={manejarChange => manejarCambio(manejarChange)} 
                   placeholder="4152 •••• •••• ••••" 
                 />
-                {errores.numero && <div className="invalid-feedback" style={{ display: 'block', color: 'var(--danger)', fontSize: '0.8rem', marginTop: '4px' }}>⚠️ {errores.numero}</div>}
+                {errores.numero && <div className="invalid-feedback" style={{ display: 'block', color: 'var(--danger)', fontSize: '0.8rem', marginTop: '4px' }}> {errores.numero}</div>}
               </div>
 
               <div className="row">
@@ -247,7 +261,7 @@ function PasarelaPagos() {
                     onChange={manejarCambio} 
                     placeholder="MM/AA" 
                   />
-                  {errores.expiracion && <div className="invalid-feedback" style={{ display: 'block', color: 'var(--danger)', fontSize: '0.8rem', marginTop: '4px' }}>⚠️ {errores.expiracion}</div>}
+                  {errores.expiracion && <div className="invalid-feedback" style={{ display: 'block', color: 'var(--danger)', fontSize: '0.8rem', marginTop: '4px' }}> {errores.expiracion}</div>}
                 </div>
                 <div className="col-md-6 mb-3">
                   <label className="form-label small text-muted">CVC / CVV</label>
@@ -261,12 +275,12 @@ function PasarelaPagos() {
                     onChange={manejarCambio} 
                     placeholder="•••" 
                   />
-                  {errores.cvv && <div className="invalid-feedback" style={{ display: 'block', color: 'var(--danger)', fontSize: '0.8rem', marginTop: '4px' }}>⚠️ {errores.cvv}</div>}
+                  {errores.cvv && <div className="invalid-feedback" style={{ display: 'block', color: 'var(--danger)', fontSize: '0.8rem', marginTop: '4px' }}> {errores.cvv}</div>}
                 </div>
               </div>
 
               <div className="alert alert-secondary p-2 mb-4 text-center" style={{ fontSize: '0.8rem', border: 'none', backgroundColor: '#F0EFF5', color: 'var(--text-light)' }}>
-                🔒 Tus datos de pago están encriptados de extremo a extremo.
+                 Tus datos de pago están encriptados de extremo a extremo.
               </div>
 
               <button 
