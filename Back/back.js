@@ -47,7 +47,7 @@ app.post('/api/alertas-seguridad', async (req, res) => {
 
         // Disparamos el correo
         await sgMail.send(msg);
-        console.log("✅ Correo de alerta enviado con éxito.");
+        console.log("Correo de alerta enviado con éxito.");
 
         // Le avisamos a Supabase que recibimos el golpe y todo salió bien
         res.status(200).json({ message: "Alerta procesada y correo enviado" });
@@ -58,8 +58,48 @@ app.post('/api/alertas-seguridad', async (req, res) => {
     }
 });
 
+// --- NUEVA RUTA: AUDITORÍA POR LECTURA (GET) ---
+// Esta ruta simula cuando un médico pide ver el expediente de un paciente
+app.get('/api/pacientes/:id', async (req, res) => {
+    try {
+        // 1. Atrapamos el ID del paciente que viene en la URL
+        const pacienteId = req.params.id; 
+        console.log(`\nLECTURA DETECTADA: Petición para ver el paciente ID: ${pacienteId}`);
+
+        // (Aquí iría la conexión de tus compañeros para extraer los datos reales de Supabase)
+        // Por ahora, simulamos los datos que le regresaríamos al Frontend:
+        const datosSimulados = { 
+            id: pacienteId, 
+            diagnostico: "Reservado", 
+            estatus: "Confidencial" 
+        };
+
+        // 2. ¡EL DISPARADOR DE SEGURIDAD! Mandamos la alerta antes de entregar los datos
+        const msg = {
+            to: process.env.EMAIL_FROM, 
+            from: process.env.EMAIL_FROM, 
+            subject: `DOCTU - Lectura de Expediente #${pacienteId}`,
+            text: `Se ha visualizado la información confidencial del paciente ${pacienteId}.`,
+            html: `<strong>¡Atención!</strong> Se ha consultado el expediente del paciente <b>#${pacienteId}</b>. <br> Si esta lectura no estaba programada en la agenda, revisa los logs de acceso.`,
+        };
+
+        await sgMail.send(msg);
+        console.log("Correo de auditoría de lectura enviado con éxito.");
+
+        // 3. Finalmente, le entregamos la información al médico (Frontend)
+        res.status(200).json({ 
+            mensaje: "Acceso autorizado. Datos recuperados.", 
+            paciente: datosSimulados 
+        });
+
+    } catch (error) {
+        console.error("Fallo en la ruta GET:", error);
+        res.status(500).json({ error: "Error interno del servidor" });
+    }
+});
+
 // Levantamos el servidor en el puerto 3000
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`🛡️  Servidor de seguridad escuchando en el puerto ${PORT}`);
+    console.log(` Servidor de seguridad escuchando en el puerto ${PORT}`);
 });
