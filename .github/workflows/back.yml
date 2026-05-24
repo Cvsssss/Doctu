@@ -17,7 +17,7 @@ jobs:
     # Le indicamos que busque dentro de la carpeta del backend
     defaults:
       run:
-        working-directory: ./backend 
+        working-directory: ./Back
         
     steps:
       - name: Checkout del código
@@ -28,7 +28,7 @@ jobs:
         with:
           node-version: '20' # Utilizamos la versión 20 por requerimiento de Supabase
           cache: 'npm'
-          cache-dependency-path: ./backend/package-lock.json
+          cache-dependency-path: ./Back/package-lock.json
           
       - name: Instalación de dependencias
         # Usamos npm install para evitar problemas si el lockfile no está 100% sincronizado
