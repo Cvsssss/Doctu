@@ -1,19 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../App'; // Conectamos con el contexto global
+import { useAuth } from '../App'; 
 import { supabase } from '../config/supabaseClient';
 import '../styles/style.css';
+import { Clock } from 'lucide-react';
+import { Search, FileCheck } from 'lucide-react';
+
 
 function DashboardMedico() {
-  const { user } = useAuth(); // Obtenemos el médico logueado
+  const { user } = useAuth(); 
   const [resumenDiario, setResumenDiario] = useState(null);
   
+  // Estado para las citas dinámicas con datos reales de la base de datos
+  const [citasHoy, setCitasHoy] = useState([]);
+
   // Estados para el buscador de pacientes
   const [busqueda, setBusqueda] = useState('');
   const [mostrarBuscador, setMostrarBuscador] = useState(false);
   const [pacientesEncontrados, setPacientesEncontrados] = useState([]);
   const [cargandoBusqueda, setCargandoBusqueda] = useState(false);
 
-  // 1. Cargar el resumen desde tu backend real usando el ID dinámico
+  // 1. Cargar el resumen diario del backend
   const fetchDailySummary = async (doctorId, date) => {
     try {
       const res = await fetch(`http://localhost:5000/api/doctors/${doctorId}/summary?date=${date}`);
@@ -26,9 +32,63 @@ function DashboardMedico() {
     }
   };
 
+  // 2. FUNCIÓN DE HORARIOS: Calcula horas aleatorias con espacio mínimo de 1.5 horas (90 minutos)
+  const generarHorariosEscalonados = (cantidad) => {
+    const horarios = [];
+    let minutosActuales = 10 * 60; // Iniciamos a las 10:00 AM en minutos transcurridos
+    const limiteMaximo = 19 * 60;  // Límite a las 7:00 PM en minutos transcurridos
+
+    for (let i = 0; i < cantidad; i++) {
+      // Sumamos un pequeño margen aleatorio extra entre 0 y 25 minutos para que no sean horas tan exactas
+      const margenVar = Math.floor(Math.random() * 25);
+      minutosActuales += margenVar;
+
+      // Si el horario calculado supera las 7:00 PM, detenemos la asignación
+      if (minutosActuales > limiteMaximo) break;
+
+      const hrs = Math.floor(minutosActuales / 60);
+      const mins = minutosActuales % 60;
+      
+      const horaFormateada = `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+      horarios.push(horaFormateada);
+
+      // Candado de separación: Forzamos que la siguiente cita sea al menos 90 minutos después
+      minutosActuales += 90;
+    }
+    return horarios;
+  };
+
+  // 3. OBTENER PACIENTES REALES: Extrae nombres de la BDD y les genera sus horas reglamentarias
+  const cargarCitasDesdeBDD = async () => {
+    try {
+      const { data, error } = await supabase
+        .schema('operaciones')
+        .from('pacientes_pii')
+        .select('nombre_completo')
+        .limit(3); // Solicitamos un bloque de 3 pacientes reales
+
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        const horasGeneradas = generarHorariosEscalonados(data.length);
+        
+        // Cruzamos los nombres reales con las horas calculadas bajo tus reglas
+        const agendaMapeada = data.map((paciente, idx) => ({
+          nombre: paciente.nombre_completo,
+          hora: horasGeneradas[idx] || '14:00'
+        }));
+        
+        setCitasHoy(agendaMapeada);
+      }
+    } catch (error) {
+      console.error("Error estructurando horarios reales:", error);
+    }
+  };
+
   const refreshDashboardData = () => {
     if (user?.id) {
       fetchDailySummary(user.id, new Date().toISOString());
+      cargarCitasDesdeBDD();
     }
   };
 
@@ -36,14 +96,13 @@ function DashboardMedico() {
     refreshDashboardData();
   }, [user]);
 
-  // 2. FUNCIÓN DE BÚSQUEDA: Busca al paciente y detecta si tiene expedientes
+  // Búsqueda de pacientes e historial clínico
   const manejarBusquedaPaciente = async (e) => {
     e.preventDefault();
     if (!busqueda.trim()) return;
 
     setCargandoBusqueda(true);
     try {
-      // Buscamos coincidencias de nombre en la tabla de pacientes
       const { data: pacientes, error: errPacientes } = await supabase
         .schema('operaciones')
         .from('pacientes_pii')
@@ -53,7 +112,6 @@ function DashboardMedico() {
       if (errPacientes) throw errPacientes;
 
       if (pacientes && pacientes.length > 0) {
-        // Por cada paciente encontrado, verificamos de forma paralela si tiene expedientes creados
         const pacientesConHistorial = await Promise.all(
           pacientes.map(async (paciente) => {
             const { data: expedientes } = await supabase
@@ -64,7 +122,7 @@ function DashboardMedico() {
 
             return {
               ...paciente,
-              expedientes: expedientes || [] // Guardamos su lista de expedientes si existen
+              expedientes: expedientes || []
             };
           })
         );
@@ -80,23 +138,44 @@ function DashboardMedico() {
     }
   };
 
+  // VISTA OPTIMIZADA: Contenido del Calendario centrado estructuralmente
   const renderMiniCalendarWidget = () => {
-    return (
-      <div className="widget card shadow-sm">
-        <h3 className="text-purple">Calendario de Hoy</h3>
-        <p>14:00 - Consulta General (Juan Pérez)</p>
-        <p>16:30 - Revisión (María Gómez)</p>
-        <button className="btn-pastel-secondary mt-3">Ver agenda completa</button>
+  return (
+    <div className="widget card shadow-sm text-center d-flex flex-column align-items-center justify-content-center p-4">
+      <h3 className="text-purple mb-3" style={{ fontWeight: 'bold' }}>Calendario de Hoy</h3>
+      <div className="w-100 mb-2">
+        {citasHoy.length > 0 ? (
+          citasHoy.map((cita, i) => (
+            <div 
+              key={i} 
+              className="mb-2 d-flex align-items-center justify-content-center gap-2" 
+              style={{ fontSize: '0.95rem' }}
+            >
+              {/* Icono de Lucide con color gris oscuro/medio para no saturar */}
+              <Clock size={16} className="text-muted" style={{ flexShrink: 0 }} />
+              <p className="m-0">
+                <strong>{cita.hora} hrs</strong> - Consulta ({cita.nombre.split(' ')[0]} {cita.nombre.split(' ')[1] || ''})
+              </p>
+            </div>
+          ))
+        ) : (
+          <p className="text-muted small italic">Sincronizando agenda clínica...</p>
+        )}
       </div>
-    );
-  };
+      <button className="btn-pastel-secondary mt-2">Ver agenda completa</button>
+    </div>
+  );
+};
 
+  // VISTA OPTIMIZADA: Contenido del Buzón centrado estructuralmente
   const renderRecentMessages = () => {
     return (
-      <div className="widget card shadow-sm">
-        <h3 className="text-purple">Buzón de Mensajes</h3>
-        <p>Tienes {resumenDiario ? resumenDiario.mensajesNuevos : 0} mensajes sin leer.</p>
-        <button className="btn-pastel-secondary mt-3">Ir al buzón</button>
+      <div className="widget card shadow-sm text-center d-flex flex-column align-items-center justify-content-center p-4">
+        <h3 className="text-purple mb-3" style={{ fontWeight: 'bold' }}>Buzón de Mensajes</h3>
+        <p className="mb-3" style={{ fontSize: '1.05rem' }}>
+          Tienes <strong className="text-purple">{resumenDiario ? resumenDiario.mensajesNuevos : 0}</strong> mensajes sin leer.
+        </p>
+        <button className="btn-pastel-secondary mt-2">Ir al buzón</button>
       </div>
     );
   };
@@ -105,7 +184,6 @@ function DashboardMedico() {
     <div className="dashboard-container container mt-4">
       <div className="z-layout">
         
-        {/* Punto 1: Bienvenida dinámica con el nombre real */}
         <div className="z-item top-left">
           <h2 className="hero-subtitle" style={{marginBottom: '0.5rem'}}>
             Bienvenido, {user ? user.nombre : 'Doctor'}
@@ -115,7 +193,6 @@ function DashboardMedico() {
           </h1>
         </div>
 
-        {/* Punto 2: Acciones Rápidas (Despliega el buscador) */}
         <div className="z-item top-right">
            <button 
              className="btn-pastel-primary" 
@@ -126,64 +203,78 @@ function DashboardMedico() {
         </div>
       </div>
 
-      {/* INTERFAZ DESPLEGABLE DEL BUSCADOR DE EXPEDIENTES */}
       {mostrarBuscador && (
-        <div className="card shadow-sm border-0 p-4 mt-4 bg-white animacion-entrada">
-          <h4 className="text-purple fw-bold mb-3">Buscador de Pacientes e Historial Clínico</h4>
-          <form onSubmit={manejarBusquedaPaciente} className="d-flex gap-2 mb-4">
-            <input 
-              type="text" 
-              className="form-control" 
-              placeholder="Escribe el nombre completo del paciente..." 
-              value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
-            />
-            <button type="submit" className="btn btn-primary" style={{backgroundColor: 'var(--purple-accent)', border:'none'}}>
-              {cargandoBusqueda ? 'Buscando...' : '🔍 Buscar'}
-            </button>
-          </form>
+  <div className="card shadow-sm border-0 p-4 mt-4 bg-white animacion-entrada">
+    <h4 className="text-purple fw-bold mb-3">Buscador de Pacientes e Historial Clínico</h4>
+    <form onSubmit={manejarBusquedaPaciente} className="d-flex gap-2 mb-4">
+      <input 
+        type="text" 
+        className="form-control" 
+        placeholder="Escribe el nombre completo del paciente..." 
+        value={busqueda}
+        onChange={(e) => setBusqueda(e.target.value)}
+      />
+      <button 
+        type="submit" 
+        className="btn btn-primary d-flex align-items-center gap-2" 
+        style={{ backgroundColor: 'var(--purple-accent)', border: 'none' }}
+        disabled={cargandoBusqueda}
+      >
+        {cargandoBusqueda ? (
+          'Buscando...'
+        ) : (
+          <>
+            <Search size={16} />
+            <span>Buscar</span>
+          </>
+        )}
+      </button>
+    </form>
 
-          {/* LISTADO DE RESULTADOS CON SUS EXPEDIENTES */}
-          <div className="resultados-busqueda">
-            {pacientesEncontrados.length > 0 ? (
-              <div className="list-group gap-2">
-                {pacientesEncontrados.map((paciente) => (
-                  <div key={paciente.id_paciente} className="list-group-item list-group-item-action border rounded p-3 d-flex justify-content-between align-items-center flex-wrap">
-                    <div>
-                      <h5 className="fw-bold mb-1">{paciente.nombre_completo}</h5>
-                      <p className="mb-0 small text-muted">CURP: <code>{paciente.curp}</code> | Email: {paciente.email}</p>
-                    </div>
-                    
-                    {/* VALIDACIÓN: Si tiene expedientes guardados en la BDD */}
-                    <div className="mt-2 mt-md-0">
-                      {paciente.expedientes.length > 0 ? (
-                        <div className="d-flex flex-column gap-1 text-end">
-                          <span className="badge bg-success mb-1">✓ {paciente.expedientes.length} Expediente(s)</span>
-                          {paciente.expedientes.map(exp => (
-                            <button 
-                              key={exp.id_expediente}
-                              className="btn btn-sm btn-pastel-primary py-1"
-                              onClick={() => alert(`Cargando visor para el Expediente #${exp.id_expediente} (${exp.tipo_formato})`)}
-                            >
-                             Ver Formato {exp.tipo_formato}
-                            </button>
-                          ))}
-                        </div>
-                      ) : (
-                        <span className="text-muted small italic"> Sin expedientes guardados</span>
-                      )}
-                    </div>
-                  </div>
-                ))}
+    <div className="resultados-busqueda">
+      {pacientesEncontrados.length > 0 ? (
+        <div className="list-group gap-2">
+          {pacientesEncontrados.map((paciente) => (
+            <div key={paciente.id_paciente} className="list-group-item list-group-item-action border rounded p-3 d-flex justify-content-between align-items-center flex-wrap">
+              <div>
+                <h5 className="fw-bold mb-1">{paciente.nombre_completo}</h5>
+                <p className="mb-0 small text-muted">CURP: <code>{paciente.curp}</code> | Email: {paciente.email}</p>
               </div>
-            ) : (
-              busqueda && !cargandoBusqueda && <p className="text-muted text-center my-3">No se encontraron pacientes que coincidan con la búsqueda.</p>
-            )}
-          </div>
+              
+              <div className="mt-2 mt-md-0">
+                {paciente.expedientes.length > 0 ? (
+                  <div className="d-flex flex-column gap-1 text-end">
+                    {/* Badge actualizado con el icono FileCheck perfectamente alineado */}
+                    <span className="badge bg-success mb-1 d-inline-flex align-items-center gap-1 justify-content-center">
+                      <FileCheck size={12} />
+                      <span>{paciente.expedientes.length} Expediente(s)</span>
+                    </span>
+                    {paciente.expedientes.map(exp => (
+                      <button 
+                        key={exp.id_expediente}
+                        className="btn btn-sm btn-pastel-primary py-1"
+                        onClick={() => alert(`Cargando visor para el Expediente #${exp.id_expediente} (${exp.tipo_formato})`)}
+                      >
+                        Ver Formato {exp.tipo_formato}
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <span className="text-muted small italic">Sin expedientes guardados</span>
+                )}
+              </div>
+            </div>
+          ))}
         </div>
+      ) : (
+        busqueda && !cargandoBusqueda && <p className="text-muted text-center my-3">No se encontraron pacientes que coincidan con la búsqueda.</p>
       )}
+    </div>
+  </div>
+)}
 
-      {/* Fila Inferior de la estructura en Z */}
+
+      {/* Fila Inferior Centrada */}
       <div className="row mt-2">
         <div className="col-md-6 z-item bottom-left mt-4">
           {renderMiniCalendarWidget()}

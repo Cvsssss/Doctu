@@ -875,7 +875,7 @@ h4, h5, h6 { font-family: var(--font-body); font-weight: 700; }
   position: relative; overflow: hidden;
 }
 .auth-left::before {
-  content: '🌸';
+  content: '';
   position: absolute; font-size: 18rem; opacity: 0.04;
   bottom: -60px; right: -60px; pointer-events: none;
 }

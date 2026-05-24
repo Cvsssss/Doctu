@@ -123,7 +123,7 @@ const transparent = isLanding && !scrolled;
               <div className="dropdown-nav-name">{user.nombre}</div>
               <div className="dropdown-nav-role" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                 {user.rol === 'medico'
-                  ? `🩺 Profesional · ${user.especialidad || 'Médico'}`
+                  ? ` Profesional · ${user.especialidad || 'Médico'}`
                   : 'Paciente'}
               </div>
             </div>

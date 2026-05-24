@@ -35,13 +35,13 @@ const Protegida = ({ children, rol }) => {
   
   // Si no hay usuario en el contexto, rebota a login
   if (!user) {
-    console.warn("⚠️ Acceso denegado: Usuario no autenticado. Redirigiendo a /login");
+    console.warn(" Acceso denegado: Usuario no autenticado. Redirigiendo a /login");
     return <Navigate to="/login" replace />;
   }
   
   // Si hay usuario pero su rol no coincide con la ruta que quiere ver, lo manda a SU portal
   if (rol && user.rol !== rol) {
-    console.warn(`⚠️ Rol incorrecto: Se esperaba ${rol} pero el usuario es ${user.rol}`);
+    console.warn(` Rol incorrecto: Se esperaba ${rol} pero el usuario es ${user.rol}`);
     return <Navigate to={user.rol === 'medico' ? '/dashboard-medico' : '/portal-paciente'} replace />;
   }
   
@@ -95,11 +95,11 @@ function App() {
 
   // Funciones globales para manejar la sesión
   const login  = (userData) => {
-    console.log("✅ Sesión iniciada globalmente:", userData);
+    console.log("Sesión iniciada globalmente:", userData);
     setUser(userData);
   };
   const logout = () => {
-    console.log("🔴 Sesión cerrada");
+    console.log(" Sesión cerrada");
     setUser(null);
   };
 

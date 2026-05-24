@@ -96,7 +96,7 @@ export default function Inicio() {
                 Soy paciente
               </Link>
               <Link to="/login?rol=medico" className="btn-hero-outline" onClick={navigateToLogin}>
-                🩺 Soy profesional de salud
+                Soy profesional de salud
               </Link>
             </div>
 
