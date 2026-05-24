@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../App'; // IMPORTANTE: Importamos el contexto desde App.js
+import { useAuth } from '../App'; 
+import { supabase } from '../config/supabaseClient'; 
 import '../styles/style.css';
 
-function RegistroPaciente() {
+function RegistroUsuario() {
   const [tipoUsuario, setTipoUsuario] = useState('paciente');
   const navigate = useNavigate(); 
   
-  // Extraemos la función login del contexto global
   const { login } = useAuth(); 
 
   const [usuario, setUsuario] = useState({
@@ -21,6 +21,7 @@ function RegistroPaciente() {
   });
 
   const [errores, setErrores] = useState({});
+  const [procesando, setProcesando] = useState(false); // Para deshabilitar el botón mientras valida
 
   const manejarCambio = (e) => {
     const { name, value } = e.target;
@@ -34,6 +35,7 @@ function RegistroPaciente() {
     }
   };
 
+  // 1. Validación Local (Formatos y Reglas de Negocio)
   const validarFormulario = () => {
     let nuevosErrores = {};
 
@@ -65,13 +67,10 @@ function RegistroPaciente() {
     }
 
     const regexComplejidad = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{10,}$/;
-    
-    const tieneCaracteresRepetidos = (str) => {
-      return /(.)\1\1/.test(str);
-    };
+    const tieneCaracteresRepetidos = (str) => /(.)\1\1/.test(str);
 
     if (!regexComplejidad.test(usuario.password)) {
-      nuevosErrores.password = 'La contraseña debe tener al menos 10 caracteres, una mayúscula, un número y un carácter especial.';
+      nuevosErrores.password = 'La contraseña debe tener al menos 10 caracteres, una mayúscula, un número y un símbolo.';
     } else if (tieneCaracteresRepetidos(usuario.password)) {
       nuevosErrores.password = 'La contraseña no puede tener más de 2 caracteres idénticos consecutivos.';
     }
@@ -84,37 +83,131 @@ function RegistroPaciente() {
     return Object.keys(nuevosErrores).length === 0;
   };
 
+  // 2. Validación en Base de Datos (Cruzar datos con las 2 tablas)
+  const verificarDuplicados = async () => {
+    let erroresDB = {};
+
+    try {
+      // Búsqueda cruzada en Tabla Pacientes (Revisamos Email, CURP y Teléfono)
+      const { data: pacientes } = await supabase
+        .from('pacientes_pii')
+        .select('curp, email, telefono')
+        .or(`email.eq.${usuario.email},curp.eq.${usuario.curp.toUpperCase()},telefono.eq.${usuario.telefono}`);
+
+      if (pacientes && pacientes.length > 0) {
+        pacientes.forEach(p => {
+          if (p.email === usuario.email) erroresDB.email = 'Este correo ya está registrado en Doctu.';
+          if (p.curp === usuario.curp.toUpperCase()) erroresDB.curp = 'Esta CURP ya se encuentra registrada.';
+          if (p.telefono === usuario.telefono) erroresDB.telefono = 'Este número de teléfono ya está en uso.';
+        });
+      }
+
+      // Búsqueda cruzada en Tabla Profesionales (Revisamos Email y Cédula)
+      // Nota: Si es paciente, usuario.cedula está vacío, por lo que solo busca el email.
+      let queryMedicos = `email.eq.${usuario.email}`;
+      if (usuario.cedula) queryMedicos += `,cedula_profesional.eq.${usuario.cedula}`;
+
+      const { data: medicos } = await supabase
+        .from('profesionales_perfiles')
+        .select('email, cedula_profesional')
+        .or(queryMedicos);
+
+      if (medicos && medicos.length > 0) {
+        medicos.forEach(m => {
+          if (m.email === usuario.email) erroresDB.email = 'Este correo ya pertenece a un usuario en Doctu.';
+          if (m.cedula_profesional === usuario.cedula) erroresDB.cedula = 'Esta cédula profesional ya fue registrada.';
+        });
+      }
+    } catch (error) {
+      console.error("Error al consultar duplicados:", error);
+    }
+
+    return erroresDB;
+  };
+
   const guardarUsuario = async (e) => {
     e.preventDefault();
     
-    if (!validarFormulario()) {
-      return; 
-    }
+    // Paso 1: Validar reglas de escritura locales
+    if (!validarFormulario()) return; 
 
-    const datosAEnviar = { ...usuario };
-    delete datosAEnviar.confirmarPassword;
+    setProcesando(true);
 
-    console.log(`Datos enviados exitosamente (Tipo: ${tipoUsuario}):`, datosAEnviar);
+    try {
+      // Paso 2: Validar duplicados contra la Base de Datos
+      const duplicados = await verificarDuplicados();
+      
+      // Si el objeto 'duplicados' tiene llaves, significa que algo ya existe
+      if (Object.keys(duplicados).length > 0) {
+        setErrores((prev) => ({ ...prev, ...duplicados }));
+        setProcesando(false);
+        return; // Detenemos el registro
+      }
 
-    // --- Flujo de Autorización y Redirección ---
-    
-    // 1. Creamos el objeto de usuario simulando la respuesta de la base de datos
-    const usuarioRecienRegistrado = {
-      id: Math.floor(Math.random() * 1000), // Simulamos un ID de base de datos
-      nombre: usuario.nombreCompleto,
-      email: usuario.email,
-      rol: tipoUsuario, // 'medico' o 'paciente'
-      especialidad: tipoUsuario === 'medico' ? 'Pendiente' : undefined
-    };
+      console.log(`Enviando registro al servidor para: ${tipoUsuario}`);
 
-    // 2. Registramos la sesión globalmente para que App.js nos deje pasar
-    login(usuarioRecienRegistrado);
+      if (tipoUsuario === 'paciente') {
+        const respuesta = await fetch('http://localhost:5000/api/patients', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            nombreCompleto: usuario.nombreCompleto,
+            curp: usuario.curp.toUpperCase(),
+            email: usuario.email,
+            telefono: usuario.telefono,
+            password: usuario.password
+          })
+        });
 
-    // 3. Redirigimos al portal que le corresponde
-    if (tipoUsuario === 'medico') {
-      navigate('/dashboard-medico');
-    } else {
-      navigate('/portal-paciente');
+        const data = await respuesta.json();
+        if (!respuesta.ok) throw new Error(data.error || 'Error al registrar paciente en el servidor');
+
+        const usuarioRegistrado = {
+          id: data.id, 
+          nombre: usuario.nombreCompleto,
+          email: usuario.email,
+          rol: 'paciente'
+        };
+
+        login(usuarioRegistrado);
+        navigate('/portal-paciente');
+
+      } else {
+        const { data, error } = await supabase
+          .from('profesionales_perfiles')
+          .insert([
+            {
+              nombre_completo: usuario.nombreCompleto,
+              cedula_profesional: usuario.cedula,
+              especialidad: 'Medicina General',
+              email: usuario.email,
+              password_hash: usuario.password
+            }
+          ])
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        const usuarioRegistrado = {
+          id: data.id_profesional,
+          nombre: data.nombre_completo,
+          email: data.email,
+          rol: 'medico',
+          especialidad: data.especialidad
+        };
+
+        login(usuarioRegistrado);
+        navigate('/dashboard-medico');
+      }
+
+      alert('¡Registro completado con éxito!');
+
+    } catch (error) {
+      console.error("Error crítico durante el registro:", error);
+      alert(`Error en el servidor: ${error.message}`);
+    } finally {
+      setProcesando(false);
     }
   };
 
@@ -131,6 +224,7 @@ function RegistroPaciente() {
               type="button" 
               className={`btn ${tipoUsuario === 'paciente' ? 'btn-primary' : 'btn-outline-primary'}`}
               onClick={() => { setTipoUsuario('paciente'); setErrores({}); }}
+              disabled={procesando}
             >
               Soy Paciente
             </button>
@@ -138,6 +232,7 @@ function RegistroPaciente() {
               type="button" 
               className={`btn ${tipoUsuario === 'medico' ? 'btn-primary' : 'btn-outline-primary'}`}
               onClick={() => { setTipoUsuario('medico'); setErrores({}); }}
+              disabled={procesando}
             >
               Soy Médico
             </button>
@@ -153,6 +248,7 @@ function RegistroPaciente() {
               name="nombreCompleto" 
               value={usuario.nombreCompleto} 
               onChange={manejarCambio} 
+              disabled={procesando}
             />
             {errores.nombreCompleto && <div className="invalid-feedback fw-bold">⚠️ {errores.nombreCompleto}</div>}
           </div>
@@ -167,6 +263,7 @@ function RegistroPaciente() {
               onChange={manejarCambio} 
               maxLength="18" 
               style={{ textTransform: 'uppercase' }}
+              disabled={procesando}
             />
             {errores.curp && <div className="invalid-feedback fw-bold">⚠️ {errores.curp}</div>}
           </div>
@@ -181,6 +278,7 @@ function RegistroPaciente() {
                 value={usuario.cedula} 
                 onChange={manejarCambio} 
                 maxLength="8"
+                disabled={procesando}
               />
               {errores.cedula && <div className="invalid-feedback fw-bold">⚠️ {errores.cedula}</div>}
             </div>
@@ -188,7 +286,15 @@ function RegistroPaciente() {
 
           <div className="mb-3">
             <label className="form-label">Correo Electrónico</label>
-            <input type="email" className="form-control" name="email" value={usuario.email} onChange={manejarCambio} required />
+            <input 
+              type="email" 
+              className={`form-control ${errores.email ? 'is-invalid' : ''}`} 
+              name="email" 
+              value={usuario.email} 
+              onChange={manejarCambio} 
+              disabled={procesando}
+            />
+            {errores.email && <div className="invalid-feedback fw-bold">⚠️ {errores.email}</div>}
           </div>
 
           <div className="mb-3">
@@ -200,6 +306,7 @@ function RegistroPaciente() {
               value={usuario.telefono} 
               onChange={manejarCambio} 
               maxLength="10"
+              disabled={procesando}
             />
             {errores.telefono && <div className="invalid-feedback fw-bold">⚠️ {errores.telefono}</div>}
           </div>
@@ -213,6 +320,7 @@ function RegistroPaciente() {
                 name="password" 
                 value={usuario.password} 
                 onChange={manejarCambio} 
+                disabled={procesando}
               />
               {errores.password && <div className="invalid-feedback fw-bold">⚠️ {errores.password}</div>}
             </div>
@@ -225,13 +333,19 @@ function RegistroPaciente() {
                 name="confirmarPassword" 
                 value={usuario.confirmarPassword} 
                 onChange={manejarCambio} 
+                disabled={procesando}
               />
               {errores.confirmarPassword && <div className="invalid-feedback fw-bold">⚠️ {errores.confirmarPassword}</div>}
             </div>
           </div>
 
-          <button type="submit" className="btn btn-primary w-100" style={{ backgroundColor: 'var(--purple-accent)', border: 'none' }}>
-            Completar Registro
+          <button 
+            type="submit" 
+            className="btn w-100" 
+            style={{ backgroundColor: 'var(--purple-accent)', color: 'white', border: 'none' }}
+            disabled={procesando}
+          >
+            {procesando ? 'Validando datos...' : 'Completar Registro'}
           </button>
         </form>
       </div>
@@ -239,4 +353,4 @@ function RegistroPaciente() {
   );
 }
 
-export default RegistroPaciente;
+export default RegistroUsuario;

@@ -24,10 +24,15 @@ export default function Navbar() {
   const [dropOpen, setDropOpen]   = useState(false);
   const dropRef = useRef(null);
 
+  // 1. Identificamos en qué pantallas NO queremos mostrar los menús internos
+  const rutasAuth = ['/login', '/registro'];
+  const esRutaAuth = rutasAuth.includes(location.pathname);
   const isLanding = location.pathname === '/';
-  const links     = user?.rol === 'medico'
+
+  // 2. Solo construimos los links si NO estamos en una ruta de autenticación
+  const links = (!esRutaAuth && user?.rol === 'medico')
     ? LINKS_MEDICO
-    : user?.rol === 'paciente'
+    : (!esRutaAuth && user?.rol === 'paciente')
       ? LINKS_PACIENTE
       : [];
 
@@ -75,7 +80,7 @@ export default function Navbar() {
             <img src={logoDoctu} alt="Doctu" className="navbar-logo-img" />
           </Link>
 
-          {/* Links de navegación (desktop) */}
+          {/* Links de navegación (desktop) - Ahora solo aparecen si 'links' tiene elementos */}
           {links.length > 0 && (
             <ul className="navbar-links-list">
               {links.map(l => (
@@ -154,26 +159,28 @@ export default function Navbar() {
               </>
             )}
 
-            {/* Hamburger (mobile) */}
-            <button
-              onClick={() => setMenuOpen(o => !o)}
-              aria-label="Menú"
-              style={{
-                display:'none',
-                flexDirection:'column', gap:5, padding:6,
-                background:'none', border:'none', cursor:'pointer',
-              }}
-              className="hamburger-btn"
-            >
-              <span style={{ display:'block', width:22, height:2, background: transparent ? 'white' : 'var(--text-main)', borderRadius:2, transition:'all 0.22s', transform: menuOpen ? 'translateY(7px) rotate(45deg)' : 'none' }} />
-              <span style={{ display:'block', width:22, height:2, background: transparent ? 'white' : 'var(--text-main)', borderRadius:2, transition:'all 0.22s', opacity: menuOpen ? 0 : 1 }} />
-              <span style={{ display:'block', width:22, height:2, background: transparent ? 'white' : 'var(--text-main)', borderRadius:2, transition:'all 0.22s', transform: menuOpen ? 'translateY(-7px) rotate(-45deg)' : 'none' }} />
-            </button>
+            {/* Hamburger (mobile) - Solo mostrar si hay links que mostrar */}
+            {links.length > 0 && (
+              <button
+                onClick={() => setMenuOpen(o => !o)}
+                aria-label="Menú"
+                style={{
+                  display:'none',
+                  flexDirection:'column', gap:5, padding:6,
+                  background:'none', border:'none', cursor:'pointer',
+                }}
+                className="hamburger-btn"
+              >
+                <span style={{ display:'block', width:22, height:2, background: transparent ? 'white' : 'var(--text-main)', borderRadius:2, transition:'all 0.22s', transform: menuOpen ? 'translateY(7px) rotate(45deg)' : 'none' }} />
+                <span style={{ display:'block', width:22, height:2, background: transparent ? 'white' : 'var(--text-main)', borderRadius:2, transition:'all 0.22s', opacity: menuOpen ? 0 : 1 }} />
+                <span style={{ display:'block', width:22, height:2, background: transparent ? 'white' : 'var(--text-main)', borderRadius:2, transition:'all 0.22s', transform: menuOpen ? 'translateY(-7px) rotate(-45deg)' : 'none' }} />
+              </button>
+            )}
           </div>
         </div>
       </nav>
 
-      {/* Mobile menu */}
+      {/* Mobile menu - Adaptado para no romperse si no hay links */}
       {menuOpen && (
         <div style={{
           position:'fixed', top:'var(--navbar-h)', left:0, right:0,
@@ -182,7 +189,7 @@ export default function Navbar() {
           animation:'slideDown 0.22s both',
           padding:'8px 16px 16px',
         }}>
-          {links.map(l => (
+          {links.length > 0 && links.map(l => (
             <Link key={l.to} to={l.to} style={{
               display:'block', padding:'12px 16px', borderRadius:'var(--radius-md)',
               fontWeight:600, fontSize:'0.95rem', color:'var(--text-main)',
