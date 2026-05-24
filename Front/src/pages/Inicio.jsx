@@ -1,19 +1,28 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Bell, FileText, Pill, Lock } from 'lucide-react';
-import { FileCheck, Target, Zap, ShieldCheck } from 'lucide-react';
+import { Bell, FileText, Pill, Lock, FileCheck, Target, Zap, ShieldCheck } from 'lucide-react';
 import '../styles/style.css';
+
+// ── IMPORTACIÓN DE IMÁGENES DEL CARRUSEL ──
+import F1 from '../assets/F1.jpeg';
+import F2 from '../assets/F2.jpeg';
+import F3 from '../assets/F3.jpeg';
+import F4 from '../assets/F4.jpeg';
+import F5 from '../assets/F5.jpeg';
+import F6 from '../assets/F6.jpeg';
+
+const IMAGENES_CARRUSEL = [F1, F2, F3, F4, F5, F6];
 
 // ── ICONOS PROFESIONALES (SVGs Minimalistas) ──
 const getIcon = (id) => {
   switch(id) {
-    case 'odontologia': // Diente estilizado
+    case 'odontologia': 
       return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 2h8a4 4 0 0 1 4 4v3a4 4 0 0 1-3 3.87V19a3 3 0 0 1-6 0v-6.13A4 4 0 0 1 4 9V6a4 4 0 0 1 4-4z"/><path d="M12 12v7"/></svg>;
-    case 'psicologia': // Cerebro
+    case 'psicologia': 
       return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/></svg>;
-    case 'medicina': // Estetoscopio
+    case 'medicina': 
       return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"/><path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4"/><circle cx="20" cy="10" r="2"/></svg>;
-    case 'veterinaria': // Huella (PawPrint)
+    case 'veterinaria': 
       return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="4" r="2"/><circle cx="18" cy="8" r="2"/><circle cx="20" cy="16" r="2"/><path d="M9 10a5 5 0 0 1 5 5v3.5a3.5 3.5 0 0 1-6.84 1.045Q6.52 17.48 4.46 16.84A3.5 3.5 0 0 1 5.5 10Z"/></svg>;
     default: return null;
   }
@@ -34,14 +43,10 @@ const PASOS = [
 ];
 
 export default function Inicio() {
-  // Estado para la burbuja de la caja de servicios
   const [hoveredDesc, setHoveredDesc] = useState('');
-  
-  // Estados para la burbuja flotante que sigue al cursor (Seguridad)
   const [activeSecurityDesc, setActiveSecurityDesc] = useState('');
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
-  /* Animaciones de scroll */
   useEffect(() => {
     const els = document.querySelectorAll('.reveal-on-scroll');
     const obs = new IntersectionObserver(
@@ -75,85 +80,105 @@ export default function Inicio() {
       {/* ── HERO ── */}
       <section className="hero-desktop">
         <div className="hero-bg-overlay" />
-        <div className="hero-content-wrapper">
-          <div className="hero-text-area animacion-entrada">
-            <div style={{ display:'inline-flex', alignItems:'center', gap:8, background:'rgba(255,255,255,0.12)', backdropFilter:'blur(8px)', border:'1px solid rgba(255,255,255,0.2)', borderRadius:'var(--radius-pill)', padding:'7px 16px', fontSize:'0.82rem', fontWeight:700, color:'rgba(255,255,255,0.9)', letterSpacing:'0.04em', marginBottom:'1.4rem' }}>
-              Infraestructura digital del sector salud
-            </div>
-
-            <h1 className="hero-title">
-              Tu historial clínico,<br />
-              <span className="text-highlight">donde tú decides.</span>
-            </h1>
-
-            <p className="hero-subtitle">
-              Doctu devuelve el control del expediente al paciente y empodera a los 
-              profesionales de la salud con interoperabilidad real y seguridad total.
-            </p>
-
-            <div className="hero-actions">
-              <Link to="/login?rol=paciente" className="btn-hero-white">
-                Soy paciente
-              </Link>
-              <Link to="/login?rol=medico" className="btn-hero-outline" onClick={navigateToLogin}>
-                Soy profesional de salud
-              </Link>
-            </div>
-
-            {/* ── GRID 2x2 DE SERVICIOS (CON FONDOS ANIMADOS) ── */}
-            <div className="hero-services-grid" style={{ marginTop:'48px' }}>
-              {SERVICIOS.map(s => (
-                <div 
-                  key={s.titulo} 
-                  className={`service-block block-${s.id}`}
-                  onMouseEnter={() => setHoveredDesc(s.desc)}
-                  onMouseLeave={() => setHoveredDesc('')}
-                >
-                  <span className="service-block-icon" style={{ display: 'flex', alignItems: 'center' }}>
-                    {getIcon(s.id)}
-                  </span>
-                  <span className="service-block-text">{s.titulo}</span>
-                </div>
-              ))}
-            </div>
+        <div className="hero-content-wrapper container">
+          
+          {/* Layout en dos columnas para texto e imágenes */}
+          <div className="row align-items-center w-100 g-5">
             
-            {/* Descripción dinámica de la especialidad */}
-            <div style={{ minHeight: '40px', marginTop: '10px', color: '#fff', textAlign: 'center', opacity: hoveredDesc ? 1 : 0, transition: 'opacity 0.3s' }}>
-                <p style={{ fontSize: '0.9rem', maxWidth: '440px', margin: '0 auto' }}>{hoveredDesc}</p>
+            {/* Columna Izquierda: Textos y Botones */}
+            <div className="col-lg-7 col-md-12 hero-text-area animacion-entrada">
+              <div style={{ display:'inline-flex', alignItems:'center', gap:8, background:'rgba(255,255,255,0.12)', backdropFilter:'blur(8px)', border:'1px solid rgba(255,255,255,0.2)', borderRadius:'var(--radius-pill)', padding:'7px 16px', fontSize:'0.82rem', fontWeight:700, color:'rgba(255,255,255,0.9)', letterSpacing:'0.04em', marginBottom:'1.4rem' }}>
+                Infraestructura digital del sector salud
+              </div>
+
+              <h1 className="hero-title">
+                Tu historial clínico,<br />
+                <span className="text-highlight">donde tú decides.</span>
+              </h1>
+
+              <p className="hero-subtitle">
+                Doctu devuelve el control del expediente al paciente y empodera a los 
+                profesionales de la salud con interoperabilidad real y seguridad total.
+              </p>
+
+              <div className="hero-actions">
+                <Link to="/login?rol=paciente" className="btn-hero-white">
+                  Soy paciente
+                </Link>
+                <Link to="/login?rol=medico" className="btn-hero-outline" onClick={navigateToLogin}>
+                  Soy profesional de salud
+                </Link>
+              </div>
+
+              <div className="hero-services-grid" style={{ marginTop:'48px' }}>
+                {SERVICIOS.map(s => (
+                  <div 
+                    key={s.titulo} 
+                    className={`service-block block-${s.id}`}
+                    onMouseEnter={() => setHoveredDesc(s.desc)}
+                    onMouseLeave={() => setHoveredDesc('')}
+                  >
+                    <span className="service-block-icon" style={{ display: 'flex', alignItems: 'center' }}>
+                      {getIcon(s.id)}
+                    </span>
+                    <span className="service-block-text">{s.titulo}</span>
+                  </div>
+                ))}
+              </div>
+              
+              <div style={{ minHeight: '40px', marginTop: '10px', color: '#fff', textAlign: 'center', opacity: hoveredDesc ? 1 : 0, transition: 'opacity 0.3s' }}>
+                  <p style={{ fontSize: '0.9rem', maxWidth: '440px', margin: '0 auto' }}>{hoveredDesc}</p>
+              </div>
             </div>
+
+            {/* Columna Derecha: Carrusel Vertical Automático */}
+            <div className="col-lg-5 d-none d-lg-block">
+              <div className="vertical-carousel-container">
+                <div className="vertical-carousel-track">
+                  {/* Renderizamos las imágenes dos veces para lograr el ciclo infinito */}
+                  {[...IMAGENES_CARRUSEL, ...IMAGENES_CARRUSEL].map((imgSrc, index) => (
+                    <img 
+                      key={index} 
+                      src={imgSrc} 
+                      alt={`Doctu plataforma clínica ${index + 1}`} 
+                      className="carousel-image shadow-sm"
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       </section>
 
       {/* ── STATS BAR ── */}
       <section style={{ background: 'var(--purple-dark)', padding: '28px 0' }}>
-  <div className="container">
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16 }}>
-      {[
-        { icon: <FileCheck size={32} color="white" />, valor: 'Cumplimiento Normativo de la NOM-004', label: '' },
-        { icon: <Target size={32} color="white" />, valor: 'Reduce el ausentismo', label: '' },
-        { icon: <Zap size={32} color="white" />, valor: 'Buscamos agilidad', label: '' },
-        { icon: <ShieldCheck size={32} color="white" />, valor: 'Tus datos, tu control', label: '' },
-      ].map((s, i) => (
-        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          {/* Contenedor del icono optimizado para vectores */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            {s.icon}
-          </div>
-          <div>
-            <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', fontWeight: 700, color: 'white', lineHeight: 1 }}>
-              {s.valor}
-            </div>
-            <div style={{ fontSize: '0.78rem', color: 'var(--purple-mid)', marginTop: 3 }}>
-              {s.label}
-            </div>
+        <div className="container">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16 }}>
+            {[
+              { icon: <FileCheck size={32} color="white" />, valor: 'Cumplimiento Normativo de la NOM-004', label: '' },
+              { icon: <Target size={32} color="white" />, valor: 'Reduce el ausentismo', label: '' },
+              { icon: <Zap size={32} color="white" />, valor: 'Buscamos agilidad', label: '' },
+              { icon: <ShieldCheck size={32} color="white" />, valor: 'Tus datos, tu control', label: '' },
+            ].map((s, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  {s.icon}
+                </div>
+                <div>
+                  <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', fontWeight: 700, color: 'white', lineHeight: 1 }}>
+                    {s.valor}
+                  </div>
+                  <div style={{ fontSize: '0.78rem', color: 'var(--purple-mid)', marginTop: 3 }}>
+                    {s.label}
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
-      ))}
-    </div>
-  </div>
-</section>
-
+      </section>
 
       {/* ── SERVICIOS DETALLADOS ── */}
       <section className="section-public" id="servicios">
@@ -220,44 +245,39 @@ export default function Inicio() {
               </ul>
             </div>
             
-            {/* ── COMPONENTE GRÁFICO DE SEGURIDAD ── */}
             <div className="col-md-6 reveal-on-scroll" style={{ animationDelay: '0.15s' }}>
-  <div style={{ background: 'var(--purple-dark)', borderRadius: 'var(--radius-xl)', overflow: 'hidden', boxShadow: 'var(--card-shadow-lg)' }}>
-    <div style={{ padding: '14px 18px', background: 'rgba(255,255,255,0.06)', borderBottom: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', gap: 10 }}>
-      <span style={{ width: 8, height: 8, background: 'var(--success)', borderRadius: '50%', boxShadow: '0 0 8px var(--success)', animation: 'pulse 2s infinite', display: 'inline-block' }} />
-      <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--success)' }}>Monitoreo activo</span>
-    </div>
-    <div style={{ padding: '18px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-      {[
-        { icon: <Bell size={18} color="rgba(255,255,255,0.85)" />, titulo: 'Acceso a expediente detectado', sub: 'Dr. García accedió a tus datos de contacto', tiempo: 'Hace 2 min' },
-        { icon: <FileText size={18} color="rgba(255,255,255,0.85)" />, titulo: 'Expediente actualizado', sub: 'Dra. Martínez añadió notas de sesión', tiempo: 'Ayer 11:20' },
-        { icon: <Pill size={18} color="rgba(255,255,255,0.85)" />, titulo: 'Nueva receta emitida', sub: 'Consulta 14 mayo · Medicina General', tiempo: '14 mayo' },
-      ].map((n, i) => (
-        <div key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', padding: '14px', background: 'rgba(255,255,255,0.06)', borderRadius: 'var(--radius-md)', border: '1px solid rgba(255,255,255,0.08)' }}>
-          {/* El contenedor ahora aloja el componente de Lucide */}
-          <span style={{ width: 34, height: 34, background: 'rgba(255,255,255,0.08)', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            {n.icon}
-          </span>
-          <div>
-            <p style={{ fontSize: '0.85rem', fontWeight: 600, color: 'white', margin: '0 0 2px' }}>{n.titulo}</p>
-            <p style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)', margin: '0 0 3px' }}>{n.sub}</p>
-            <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.3)', margin: 0 }}>{n.tiempo}</p>
-          </div>
-        </div>
-      ))}
-    </div>
-    {/* Se reemplazó el candado de texto por el componente Lock */}
-    <div style={{ padding: '12px 18px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '0.78rem', color: 'rgba(255,255,255,0.35)', borderTop: '1px solid rgba(255,255,255,0.07)' }}>
-      <Lock size={12} color="rgba(255,255,255,0.35)" />
-      <span>Tus datos protegidos en tiempo real</span>
-    </div>
-  </div>
-</div>
-
+              <div style={{ background: 'var(--purple-dark)', borderRadius: 'var(--radius-xl)', overflow: 'hidden', boxShadow: 'var(--card-shadow-lg)' }}>
+                <div style={{ padding: '14px 18px', background: 'rgba(255,255,255,0.06)', borderBottom: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{ width: 8, height: 8, background: 'var(--success)', borderRadius: '50%', boxShadow: '0 0 8px var(--success)', animation: 'pulse 2s infinite', display: 'inline-block' }} />
+                  <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--success)' }}>Monitoreo activo</span>
+                </div>
+                <div style={{ padding: '18px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {[
+                    { icon: <Bell size={18} color="rgba(255,255,255,0.85)" />, titulo: 'Acceso a expediente detectado', sub: 'Dr. García accedió a tus datos de contacto', tiempo: 'Hace 2 min' },
+                    { icon: <FileText size={18} color="rgba(255,255,255,0.85)" />, titulo: 'Expediente actualizado', sub: 'Dra. Martínez añadió notas de sesión', tiempo: 'Ayer 11:20' },
+                    { icon: <Pill size={18} color="rgba(255,255,255,0.85)" />, titulo: 'Nueva receta emitida', sub: 'Consulta 14 mayo · Medicina General', tiempo: '14 mayo' },
+                  ].map((n, i) => (
+                    <div key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', padding: '14px', background: 'rgba(255,255,255,0.06)', borderRadius: 'var(--radius-md)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                      <span style={{ width: 34, height: 34, background: 'rgba(255,255,255,0.08)', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        {n.icon}
+                      </span>
+                      <div>
+                        <p style={{ fontSize: '0.85rem', fontWeight: 600, color: 'white', margin: '0 0 2px' }}>{n.titulo}</p>
+                        <p style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)', margin: '0 0 3px' }}>{n.sub}</p>
+                        <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.3)', margin: 0 }}>{n.tiempo}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ padding: '12px 18px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '0.78rem', color: 'rgba(255,255,255,0.35)', borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+                  <Lock size={12} color="rgba(255,255,255,0.35)" />
+                  <span>Tus datos protegidos en tiempo real</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* ── BURBUJA FLOTANTE QUE SIGUE AL CURSOR ── */}
         {activeSecurityDesc && (
           <div style={{
             position: 'fixed',
@@ -269,7 +289,7 @@ export default function Inicio() {
             borderRadius: '8px',
             maxWidth: '300px',
             boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
-            pointerEvents: 'none', /* Evita que el ratón "choque" con la burbuja */
+            pointerEvents: 'none',
             zIndex: 9999,
             fontSize: '0.85rem',
             lineHeight: 1.5,
@@ -283,7 +303,6 @@ export default function Inicio() {
       {/* ── CTA FINAL ── */}
       <section className="cta-section">
         <div className="container text-center reveal-on-scroll">
-          <div style={{ fontSize:'2.8rem', marginBottom:16 }}></div>
           <h2>Tu salud, tu expediente, tu control.</h2>
           <p>Únete a Doctu hoy. Es gratis para pacientes.</p>
           <div style={{ display:'flex', gap:14, justifyContent:'center', flexWrap:'wrap' }}>
@@ -326,7 +345,7 @@ export default function Inicio() {
         .security-list-item {
           padding: 14px 10px;
           border-bottom: 1px solid rgba(0,0,0,0.06);
-          cursor: crosshair; /* Cursor para indicar zona interactiva */
+          cursor: crosshair; 
           transition: background 0.3s ease, padding-left 0.3s ease;
           border-radius: 6px;
         }
@@ -346,7 +365,6 @@ export default function Inicio() {
           gap: 12px;
           max-width: 440px;
         }
-
         .service-block {
           display: flex;
           align-items: center;
@@ -363,52 +381,77 @@ export default function Inicio() {
           position: relative;
           overflow: hidden; 
         }
-
-        /* ILUMINACIÓN DE BORDES AL PASAR EL MOUSE */
         .service-block:hover {
           background: rgba(255, 255, 255, 0.15);
           border-color: rgba(255, 255, 255, 0.9);
           box-shadow: 0 0 15px rgba(255, 255, 255, 0.4), inset 0 0 10px rgba(255, 255, 255, 0.2);
         }
-
-        /* ── ANIMACIONES DE FONDO PARA CADA BOTÓN ── */
         .service-block:hover {
           background-color: rgba(255, 255, 255, 0.04) !important; 
         }
-
-        /* Estilos base del pseudo-elemento (los iconos ocultos) */
         .service-block::before {
           position: absolute;
           top: 0; left: -50%; width: 200%; height: 100%;
           display: flex; align-items: center; opacity: 0; pointer-events: none;
           transition: opacity 0.3s ease;
-          font-size: 1.5rem; /* Más grande para que sea muy visible */
-          text-shadow: 0 0 8px rgba(255,255,255,0.4); /* Resplandor brillante */
+          font-size: 1.5rem; 
+          text-shadow: 0 0 8px rgba(255,255,255,0.4); 
           z-index: 0;
         }
-
-        /* Al pasar el mouse, revelamos los símbolos y arrancamos la animación */
         .service-block:hover::before {
-          opacity: 0.35; /* Opacidad alta para distinguirse perfectamente */
+          opacity: 0.35; 
           animation: slideIcons 5s linear infinite;
         }
-
-        /* Asignación de patrones visuales para cada área */
         .block-odontologia::before { content: '🦷 🦷 🦷 🦷 🦷 🦷 🦷 🦷'; }
         .block-psicologia::before { content: '🧠 🧠 🧠 🧠 🧠 🧠 🧠 🧠'; }
         .block-medicina::before { content: '✚ 🩺 ✚ 🩺 ✚ 🩺 ✚ 🩺'; }
         .block-veterinaria::before { content: '🐾 🐾 🐾 🐾 🐾 🐾 🐾 🐾'; }
-
-        /* Mantenemos el icono SVG principal y el texto encima de la animación */
         .service-block-icon, .service-block-text {
           position: relative;
           z-index: 1;
         }
-
-        /* Animación suave de deslizamiento infinito */
         @keyframes slideIcons {
           0% { transform: translateX(0); }
           100% { transform: translateX(15%); }
+        }
+
+        /* ── CARRUSEL VERTICAL ── */
+        .vertical-carousel-container {
+          width: 100%;
+          height: 520px; /* Ajusta la altura del carrusel */
+          overflow: hidden;
+          position: relative;
+          border-radius: var(--radius-xl);
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+          /* Efecto de difuminado arriba y abajo para que las fotos desaparezcan suavemente */
+          mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
+          -webkit-mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
+        }
+
+        .vertical-carousel-track {
+          display: flex;
+          flex-direction: column;
+          gap: 16px; /* Separación entre las imágenes */
+          animation: scrollVertical 35s linear infinite; /* Tiempo total para un ciclo completo */
+        }
+
+        /* Pausar animación si el usuario pone el mouse encima (opcional pero recomendado) */
+        .vertical-carousel-container:hover .vertical-carousel-track {
+          animation-play-state: paused;
+        }
+
+        .carousel-image {
+          width: 100%;
+          height: auto;
+          border-radius: 12px;
+          object-fit: cover;
+          display: block;
+        }
+
+        @keyframes scrollVertical {
+          0% { transform: translateY(0); }
+          /* Se desplaza exactamente la mitad del contenedor (ya que las imágenes están duplicadas) */
+          100% { transform: translateY(calc(-50% - 8px)); } 
         }
       `}</style>
     </main>

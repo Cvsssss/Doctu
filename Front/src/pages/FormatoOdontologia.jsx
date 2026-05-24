@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '../config/supabaseClient';
 import '../styles/style.css';
-import { CheckCircle, AlertCircle, Shield, MinusCircle, Activity, UploadCloud, FileImage, X } from 'lucide-react';
+import { CheckCircle, AlertCircle, Shield, MinusCircle, Activity, UploadCloud, FileImage, X, ArrowLeft, ArrowRight, Save } from 'lucide-react';
 
 // --- COMPONENTE INTERNO: Odontograma Clínico Interactivo (FDI) ---
 const OdontogramaInteractivo = ({ jsonState, setJsonState }) => {
@@ -110,40 +110,33 @@ const OdontogramaInteractivo = ({ jsonState, setJsonState }) => {
 function FormatoOdontologia({ idExpediente, setEstadoGlobal }) {
   const [activeTab, setActiveTab] = useState('antecedentes_atm');
   const [guardando, setGuardando] = useState(false);
-  const [archivosCargados, setArchivosCargados] = useState([]); // Estado visual para el Gabinete
+  const [modo, setModo] = useState('nuevo'); // Control de persistencia relacional
+  const [archivosCargados, setArchivosCargados] = useState([]); 
   
   const [formData, setFormData] = useState({
-    // Antecedentes (NOM-004)
     antecedentesPatologicos: '',
     antecedentesNoPatologicos: '',
     consumoAlcohol: '',
     consumoCigarro: '',
     consumoDrogas: '',
-
-    // ATM y Tejidos (NOM-004)
     atmChasquido: false,
     atmCrepitacion: false,
     atmDesviacionApertura: false,
-    atmMomento: '', // 'Apertura', 'Cierre', 'Ambos'
+    atmMomento: '', 
     atmDolor: false,
-    
     alteracionesMaxilofaciales: '',
     musculatura: 'Sin alteraciones',
     labiosCarrillos: 'Sin alteraciones',
     lenguaPisoBoca: 'Sin alteraciones',
     paladarOrofaringe: 'Sin alteraciones',
     enciasPeriodonto: 'Sin alteraciones',
-    
-    // Hábitos Perniciosos
-    habitoBricomania: false, // Reemplazo de Bruxismo
+    habitoBricomania: false, 
     habitoOnicofagia: false,
     habitoSuccionDigital: false,
     habitoMorderLabioMejilla: false,
     habitoDeglucionAtipica: false,
     habitoRespiracionBucal: false,
     habitosOtros: '',
-    
-    // Índices
     indicePlacaOLeary: '',
     cepilladoFrecuencia: '',
     usoHiloDental: false,
@@ -153,8 +146,6 @@ function FormatoOdontologia({ idExpediente, setEstadoGlobal }) {
     dientesPerdidos: 0,
     dientesObturados: 0,
     indiceCPO: 0,
-    
-    // Diagnóstico
     clasificacionAngle: '',
     sobremordidaHorizontal: '',
     sobremordidaVertical: '',
@@ -162,15 +153,90 @@ function FormatoOdontologia({ idExpediente, setEstadoGlobal }) {
     diagnosticoPeriodontal: '',
     planTratamientoFases: '',
     presupuestoEstimado: '',
-    consentimientoFirmado: false
+    consentimientoFirmado: false,
+    notasEvolucion: ''
   });
+
+  // Efecto de carga inicial: Evalúa preexistencia para bifurcar entre INSERT y UPDATE
+  useEffect(() => {
+    const cargarHistorialOdonto = async () => {
+      if (!idExpediente) return;
+      if (setEstadoGlobal) setEstadoGlobal('Verificando registros odontológicos preexistentes...');
+
+      try {
+        const { data, error } = await supabase
+          .schema('operaciones')
+          .from('formato_odontologia')
+          .select('*')
+          .eq('id_expediente', idExpediente)
+          .maybeSingle();
+
+        if (error) throw error;
+
+        if (data) {
+          setFormData({
+            antecedentesPatologicos: data.antecedentes_patologicos || '',
+            antecedentesNoPatologicos: data.antecedentes_no_patologicos || '',
+            consumoAlcohol: data.consumo_alcohol || '',
+            consumoCigarro: data.consumo_cigarro || '',
+            consumoDrogas: data.consumo_drogas || '',
+            atmChasquido: data.atm_chasquido || false,
+            atmCrepitacion: data.atm_crepitacion || false,
+            atmDesviacionApertura: data.atm_desviacion_apertura || false,
+            atmMomento: data.atm_sintoma_momento || '',
+            atmDolor: data.atm_dolor || false,
+            alteracionesMaxilofaciales: data.alteraciones_maxilofaciales || '',
+            musculatura: data.musculatura || 'Sin alteraciones',
+            labiosCarrillos: data.labios_carrillos || 'Sin alteraciones',
+            lenguaPisoBoca: data.lengua_pisoboca || 'Sin alteraciones',
+            paladarOrofaringe: data.paladar_orofaringe || 'Sin alteraciones',
+            enciasPeriodonto: data.encias_periodonto || 'Sin alteraciones',
+            habitoBricomania: data.habito_bricomania || false,
+            habitoOnicofagia: data.habito_onicofagia || false,
+            habitoSuccionDigital: data.habito_succion_digital || false,
+            habitoMorderLabioMejilla: data.habito_morder_labio_mejilla || false,
+            habitoDeglucionAtipica: data.habito_deglucion_atipica || false,
+            habitoRespiracionBucal: data.habito_respiracion_bucal || false,
+            habitosOtros: data.habitos_otros || '',
+            indicePlacaOLeary: data.indice_placa_o_leary || '',
+            cepilladoFrecuencia: data.cepillado_frecuencia || '',
+            usoHiloDental: data.uso_hilo_dental || false,
+            usoEnjuague: data.uso_enjuague || false,
+            odontogramaJSON: data.odontograma_json || {},
+            dientesCariados: data.dientes_cariados_c || 0,
+            dientesPerdidos: data.dientes_perdidos_p || 0,
+            dientesObturados: data.dientes_obturados_o || 0,
+            indiceCPO: data.indice_cpo || 0,
+            clasificacionAngle: data.clasificacion_angle || '',
+            sobremordidaHorizontal: data.sobremordida_horizontal || '',
+            sobremordidaVertical: data.sobremordida_vertical || '',
+            diagnosticoPulpar: data.diagnostico_pulpar || '',
+            diagnosticoPeriodontal: data.diagnostico_periodontal || '',
+            planTratamientoFases: data.plan_tratamiento_fases || '',
+            presupuestoEstimado: data.presupuesto_estimado || '',
+            consentimientoFirmado: data.consentimiento_firmado || false,
+            notasEvolucion: data.notas_evolucion || ''
+          });
+          setModo('editar');
+          if (setEstadoGlobal) setEstadoGlobal('Historial previo cargado. Modo evolutivo activo.');
+        } else {
+          setModo('nuevo');
+          if (setEstadoGlobal) setEstadoGlobal('Formato en blanco listo para llenado inicial.');
+        }
+      } catch (err) {
+        console.error("Error mapeando la persistencia de odontología:", err);
+      }
+    };
+
+    cargarHistorialOdonto();
+  }, [idExpediente]);
 
   const manejarCambio = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData({
-      ...formData,
+    setFormData(prev => ({
+      ...prev,
       [name]: type === 'checkbox' ? checked : value
-    });
+    }));
   };
 
   const calcularCPO = (c, p, o) => {
@@ -179,7 +245,6 @@ function FormatoOdontologia({ idExpediente, setEstadoGlobal }) {
   };
 
   const manejarSubidaArchivos = (e) => {
-    // Simulación de carga de archivos de gabinete
     const files = Array.from(e.target.files);
     const nuevosArchivos = files.map(file => ({
       nombre: file.name,
@@ -202,7 +267,7 @@ function FormatoOdontologia({ idExpediente, setEstadoGlobal }) {
     }
 
     setGuardando(true);
-    if (setEstadoGlobal) setEstadoGlobal('Optimizando datos de consulta...');
+    if (setEstadoGlobal) setEstadoGlobal('Procesando datos y estructurando mapa dental...');
 
     const odontogramaFiltrado = {};
     Object.keys(formData.odontogramaJSON).forEach((dienteKey) => {
@@ -212,70 +277,75 @@ function FormatoOdontologia({ idExpediente, setEstadoGlobal }) {
       }
     });
 
+    const dbPayload = {
+      id_expediente: idExpediente,
+      antecedentes_patologicos: formData.antecedentesPatologicos,
+      antecedentes_no_patologicos: formData.antecedentesNoPatologicos,
+      consumo_alcohol: formData.consumoAlcohol,
+      consumo_cigarro: formData.consumoCigarro,
+      consumo_drogas: formData.consumoDrogas,
+      atm_chasquido: formData.atmChasquido,
+      atm_crepitacion: formData.atmCrepitacion,
+      atm_desviacion_apertura: formData.atmDesviacionApertura,
+      atm_sintoma_momento: formData.atmMomento,
+      atm_dolor: formData.atmDolor,
+      alteraciones_maxilofaciales: formData.alteracionesMaxilofaciales,
+      musculatura: formData.musculatura,
+      labios_carrillos: formData.labiosCarrillos,
+      lengua_pisoboca: formData.lenguaPisoBoca,
+      paladar_orofaringe: formData.paladarOrofaringe,
+      encias_periodonto: formData.enciasPeriodonto,
+      habito_bricomania: formData.habitoBricomania,
+      habito_onicofagia: formData.habitoOnicofagia,
+      habito_succion_digital: formData.habitoSuccionDigital,
+      habito_morder_labio_mejilla: formData.habitoMorderLabioMejilla,
+      habito_deglucion_atipica: formData.habitoDeglucionAtipica,
+      habito_respiracion_bucal: formData.habitoRespiracionBucal,
+      habitos_otros: formData.habitosOtros,
+      indice_placa_o_leary: formData.indicePlacaOLeary ? parseFloat(formData.indicePlacaOLeary) : null,
+      cepillado_frecuencia: formData.cepilladoFrecuencia,
+      uso_hilo_dental: formData.usoHiloDental,
+      uso_enjuague: formData.usoEnjuague,
+      odontograma_json: odontogramaFiltrado, 
+      dientes_cariados_c: parseInt(formData.dientesCariados) || 0,
+      dientes_perdidos_p: parseInt(formData.dientesPerdidos) || 0,
+      dientes_obturados_o: parseInt(formData.dientesObturados) || 0,
+      indice_cpo: parseInt(formData.indiceCPO) || 0,
+      clasificacion_angle: formData.clasificacionAngle,
+      sobremordida_horizontal: formData.sobremordidaHorizontal ? parseFloat(formData.sobremordidaHorizontal) : null,
+      sobremordida_vertical: formData.sobremordidaVertical ? parseFloat(formData.sobremordidaVertical) : null,
+      diagnostico_pulpar: formData.diagnosticoPulpar,
+      diagnostico_periodontal: formData.diagnosticoPeriodontal,
+      plan_tratamiento_fases: formData.planTratamientoFases,
+      presupuesto_estimado: formData.presupuestoEstimado ? parseFloat(formData.presupuestoEstimado) : null,
+      consentimiento_firmado: formData.consentimientoFirmado,
+      notas_evolucion: formData.notasEvolucion
+    };
+
     try {
-      const { error } = await supabase
-        .schema('operaciones')
-        .from('formato_odontologia')
-        .insert([{
-          id_expediente: idExpediente,
-          antecedentes_patologicos: formData.antecedentesPatologicos,
-          antecedentes_no_patologicos: formData.antecedentesNoPatologicos,
-          consumo_alcohol: formData.consumoAlcohol,
-          consumo_cigarro: formData.consumoCigarro,
-          consumo_drogas: formData.consumoDrogas,
-          
-          atm_chasquido: formData.atmChasquido,
-          atm_crepitacion: formData.atmCrepitacion,
-          atm_desviacion_apertura: formData.atmDesviacionApertura,
-          atm_sintoma_momento: formData.atmMomento,
-          atm_dolor: formData.atmDolor,
-          
-          alteraciones_maxilofaciales: formData.alteracionesMaxilofaciales,
-          musculatura: formData.musculatura,
-          labios_carrillos: formData.labiosCarrillos,
-          lengua_pisoboca: formData.lenguaPisoBoca,
-          paladar_orofaringe: formData.paladarOrofaringe,
-          encias_periodonto: formData.enciasPeriodonto,
-          
-          habito_bricomania: formData.habitoBricomania,
-          habito_onicofagia: formData.habitoOnicofagia,
-          habito_succion_digital: formData.habitoSuccionDigital,
-          habito_morder_labio_mejilla: formData.habitoMorderLabioMejilla,
-          habito_deglucion_atipica: formData.habitoDeglucionAtipica,
-          habito_respiracion_bucal: formData.habitoRespiracionBucal,
-          habitos_otros: formData.habitosOtros,
-          
-          indice_placa_o_leary: formData.indicePlacaOLeary ? parseFloat(formData.indicePlacaOLeary) : null,
-          cepillado_frecuencia: formData.cepilladoFrecuencia,
-          uso_hilo_dental: formData.usoHiloDental,
-          uso_enjuague: formData.usoEnjuague,
-          
-          odontograma_json: odontogramaFiltrado, 
-          
-          dientes_cariados_c: parseInt(formData.dientesCariados) || 0,
-          dientes_perdidos_p: parseInt(formData.dientesPerdidos) || 0,
-          dientes_obturados_o: parseInt(formData.dientesObturados) || 0,
-          indice_cpo: parseInt(formData.indiceCPO) || 0,
-          
-          clasificacion_angle: formData.clasificacionAngle,
-          sobremordida_horizontal: formData.sobremordidaHorizontal ? parseFloat(formData.sobremordidaHorizontal) : null,
-          sobremordida_vertical: formData.sobremordidaVertical ? parseFloat(formData.sobremordidaVertical) : null,
-          diagnostico_pulpar: formData.diagnosticoPulpar,
-          diagnostico_periodontal: formData.diagnosticoPeriodontal,
-          plan_tratamiento_fases: formData.planTratamientoFases,
-          presupuesto_estimado: formData.presupuestoEstimado ? parseFloat(formData.presupuestoEstimado) : null,
-          consentimiento_firmado: formData.consentimientoFirmado
-          // El arreglo de 'archivosCargados' se enviaría al bucket de Supabase Storage en un flujo posterior
-        }]);
+      if (modo === 'editar') {
+        const { error } = await supabase
+          .schema('operaciones')
+          .from('formato_odontologia')
+          .update(dbPayload)
+          .eq('id_expediente', idExpediente);
 
-      if (error) throw error;
+        if (error) throw error;
+        alert('¡Historial clínico odontológico actualizado de forma evolutiva!');
+      } else {
+        const { error } = await supabase
+          .schema('operaciones')
+          .from('formato_odontologia')
+          .insert([dbPayload]);
 
-      alert('¡Expediente odontológico optimizado y guardado con éxito!');
-      if (setEstadoGlobal) setEstadoGlobal('Cambios guardados con éxito.');
+        if (error) throw error;
+        alert('¡Primer expediente odontológico creado con éxito!');
+        setModo('editar'); 
+      }
+      if (setEstadoGlobal) setEstadoGlobal('Cambios clínicos guardados.');
     } catch (error) {
-      console.error("Error insertando formato_odontologia:", error);
+      console.error("Error de persistencia clínica:", error);
       alert(`Error al guardar: ${error.message}`);
-      if (setEstadoGlobal) setEstadoGlobal('Error al guardar.');
     } finally {
       setGuardando(false);
     }
@@ -328,7 +398,7 @@ function FormatoOdontologia({ idExpediente, setEstadoGlobal }) {
             <h5 style={{ color: '#1565C0', fontWeight: '600' }}>Antecedentes Personales (NOM-004)</h5>
             <div className="row g-3 mb-4 mt-2">
               <div className="col-md-6">
-                <label className="form-label small fw-bold">Patológicos (Enfermedades crónicas, cirugías, alergias)</label>
+                <label className="form-label small fw-bold">Patológicos (Enfermedades crónicas, cirugías, allergies)</label>
                 <textarea className="form-control" name="antecedentesPatologicos" value={formData.antecedentesPatologicos} onChange={manejarCambio} rows="2" placeholder="Ej. Diabetes tipo 2 controlada, alergia a penicilina..."></textarea>
               </div>
               <div className="col-md-6">
@@ -447,7 +517,9 @@ function FormatoOdontologia({ idExpediente, setEstadoGlobal }) {
               </div>
             </div>
 
-            <button type="button" className="btn mt-4" style={{ backgroundColor: '#1565C0', color: 'white' }} onClick={() => setActiveTab('odontograma')}>Siguiente: Odontograma</button>
+            <button type="button" className="btn btn-outline-secondary d-inline-flex align-items-center gap-2 mt-4" style={{ backgroundColor: '#1565C0', color: 'white', border: 'none' }} onClick={() => setActiveTab('odontograma')}>
+              <span>Siguiente: Odontograma</span> <ArrowRight size={16} />
+            </button>
           </div>
         )}
 
@@ -499,8 +571,12 @@ function FormatoOdontologia({ idExpediente, setEstadoGlobal }) {
             </div>
 
             <div className="d-flex gap-2 mt-4">
-              <button type="button" className="btn btn-outline-secondary" onClick={() => setActiveTab('antecedentes_atm')}>Anterior</button>
-              <button type="button" className="btn" style={{ backgroundColor: '#1565C0', color: 'white' }} onClick={() => setActiveTab('diagnostico')}>Siguiente: Diagnóstico</button>
+              <button type="button" className="btn btn-outline-secondary d-inline-flex align-items-center gap-2" onClick={() => setActiveTab('antecedentes_atm')}>
+                <ArrowLeft size={16} /> Anterior
+              </button>
+              <button type="button" className="btn d-inline-flex align-items-center gap-2" style={{ backgroundColor: '#1565C0', color: 'white', border: 'none' }} onClick={() => setActiveTab('diagnostico')}>
+                <span>Siguiente: Diagnóstico</span> <ArrowRight size={16} />
+              </button>
             </div>
           </div>
         )}
@@ -571,6 +647,12 @@ function FormatoOdontologia({ idExpediente, setEstadoGlobal }) {
               <textarea className="form-control" name="planTratamientoFases" value={formData.planTratamientoFases} onChange={manejarCambio} rows="4" placeholder="Fase Higiénica, Fase Quirúrgica, Fase Protésica..." required />
             </div>
 
+            {/* SECCIÓN COMPLEMENTARIA NORMADA: NOTAS DE EVOLUCIÓN HISTÓRICA */}
+            <div className="mb-4 p-3 rounded border" style={{ backgroundColor: '#F9FAFB', borderLeft: '4px solid #1565C0' }}>
+              <label className="form-label fw-bold text-main" style={{ color: '#1565C0' }}>Notas de Evolución (Historial y Seguimiento Clínico)</label>
+              <textarea className="form-control bg-white" name="notasEvolucion" value={formData.notasEvolucion} onChange={manejarCambio} rows="3" placeholder="Describa la evolución sintomática, cicatrización post-quirúrgica, nivel de higiene bucal comparativo y ajustes al tratamiento..." />
+            </div>
+
             <div className="row g-3 align-items-center mb-4">
               <div className="col-md-4">
                 <label className="form-label fw-bold">Presupuesto Estimado (MXN)</label>
@@ -585,14 +667,17 @@ function FormatoOdontologia({ idExpediente, setEstadoGlobal }) {
             </div>
 
             <div className="d-flex gap-2 justify-content-end mt-4 pt-3" style={{ borderTop: '1px solid #BBDEFB' }}>
-              <button type="button" className="btn btn-outline-secondary" onClick={() => setActiveTab('odontograma')}>Anterior</button>
+              <button type="button" className="btn btn-outline-secondary d-inline-flex align-items-center gap-2" onClick={() => setActiveTab('odontograma')}>
+                <ArrowLeft size={16} /> Anterior
+              </button>
               <button 
                 type="submit" 
-                className="btn" 
+                className="btn btn-primary d-inline-flex align-items-center gap-2" 
                 disabled={guardando}
-                style={{ backgroundColor: '#1565C0', color: 'white', fontWeight: 'bold' }}
+                style={{ backgroundColor: '#1565C0', border: 'none', fontWeight: 'bold' }}
               >
-                {guardando ? 'Sincronizando...' : 'Guardar Expediente Odontológico'}
+                <Save size={16} />
+                <span>{guardando ? 'Sincronizando...' : 'Guardar Expediente Odontológico'}</span>
               </button>
             </div>
           </div>

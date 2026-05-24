@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import '../styles/style.css';
 
 function RegistroPaciente() {
-  // Ajustado al modelo de la tabla Pacientes_PII de Oracle 
+  // Ajustado al modelo de la tabla Pacientes_PII
   const [paciente, setPaciente] = useState({
     nombreCompleto: '',
     curp: '',

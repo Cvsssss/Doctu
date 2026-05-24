@@ -11,7 +11,7 @@ function BusquedaPaciente() {
   // Referencia para mantener vivo el temporizador entre renderizados
   const timerRef = useRef(null);
 
-  // 1. Ejecución de la búsqueda (Simulando Patrón Repository hacia Oracle DB)
+  // 1. Ejecución de la búsqueda (Simulando Patrón Repository DB)
   const executeSearchQuery = async (searchQuery, filters) => {
     setBuscando(true);
     console.log(`Ejecutando búsqueda segura para: ${searchQuery}`);
