@@ -1,5 +1,8 @@
 name: Doctu Frontend CI/CD
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 on:
   push:
     branches: [ main, develop ]
@@ -11,6 +14,11 @@ jobs:
     name: React Build & QA
     runs-on: ubuntu-latest
     
+    # 1. Le decimos a todos los comandos 'run' que se ejecuten dentro de esta carpeta
+    defaults:
+      run:
+        working-directory: ./doctu-front
+        
     steps:
       - name: Checkout del código
         uses: actions/checkout@v4
@@ -18,14 +26,15 @@ jobs:
       - name: Configurar Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18' # Versión estable y recomendada para react-scripts 5.x
+          node-version: '18'
           cache: 'npm'
+          # 2. Le indicamos al caché dónde encontrar el lockfile para que no se pierda
+          cache-dependency-path: ./doctu-front/package-lock.json
           
       - name: Instalación limpia de dependencias
         run: npm ci 
         
       - name: Ejecutar pruebas unitarias
-        # La variable CI=true evita que el script de Jest se quede esperando input interactivo
         run: npm run test -- --passWithNoTests
         env:
           CI: true
@@ -33,13 +42,5 @@ jobs:
       - name: Compilación optimizada para producción
         run: npm run build
         env:
-          # Si usas variables de entorno para Supabase en el front, inyéctalas aquí desde los secrets
           REACT_APP_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           REACT_APP_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-          
-      - name: Subir artefacto de compilación (Opcional)
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-frontend
-          path: build/
-          retention-days: 7
