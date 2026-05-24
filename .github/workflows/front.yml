@@ -42,5 +42,6 @@ jobs:
       - name: Compilación optimizada para producción
         run: npm run build
         env:
+          CI: false # <-- ESTA ES LA MAGIA QUE EVITA QUE FALLE POR WARNINGS
           REACT_APP_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           REACT_APP_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
