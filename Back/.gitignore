@@ -2,4 +2,4 @@ node_modules/
 .env
 seeds.js
 build/
-supabase/
+.datos_remotos
