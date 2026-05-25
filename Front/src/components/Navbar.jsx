@@ -80,7 +80,12 @@ const transparent = isLanding && !scrolled;
 
           {/* Logo */}
           <Link to="/" style={{ display:'flex', alignItems:'center', gap:10, textDecoration:'none' }}>
-            <img src={logoDoctu} alt="Doctu" className="navbar-logo-img" />
+            <img 
+            src={logoDoctu} 
+            alt="Doctu" 
+            className="navbar-logo-img" 
+            style={{ height: '200px', width: 'auto', transform: 'translateY(25px)' }} 
+            />
           </Link>
 
           {/* Links de navegación (desktop) - Desaparecen en landing */}
